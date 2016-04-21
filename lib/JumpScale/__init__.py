@@ -94,7 +94,9 @@ j.servers=Loader("j.servers")
 j.portal = Loader('j.portal')
 j.portal.tools = Loader('j.portal.tools')
 
+import core.errorhandling.OurExceptions as OurExceptions
 
+j.exceptions = OurExceptions
 
 from .InstallTools import InstallTools
 from .InstallTools import Installer

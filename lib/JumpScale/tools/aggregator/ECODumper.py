@@ -10,22 +10,6 @@ class ECODumper(Dumper.BaseDumper):
 
     def dump(self, redis):
         """
-
-        eco = {}
-        eco.key = key
-        eco.message = message
-        eco.messagepub = messagepub
-        eco.code = code
-        eco.funcname = funcname
-        eco.funcfilepath = funcfilepath
-        eco.closetime = 0
-        eco.occurrences = 1
-        eco.lasttime = newtime
-        eco.backtrace = backtrace
-        eco.level = level
-        eco.type = type
-        eco.tags = tags
-
         :param redis:
         :return:
         """
@@ -41,9 +25,10 @@ class ECODumper(Dumper.BaseDumper):
             obj = j.data.serializer.json.loads(data)
 
             eco = j.data.models.system.Errorcondition()
-            eco.guid = obj['key']
-            for key in ('errormessage', 'errormessagepub', 'code', 'funcname', 'funcfilename', 'closetime',
-                        'occurrences', 'lasttime', 'backtrace', 'level', 'type', 'tags', 'gid', 'nid'):
-                setattr(eco, key, obj.get(key))
-                
+            eco.guid = obj["id"]
+            eco.reload()
+            for key, value in obj.items():
+                setattr(eco, key, value)
+            eco.occuranecs = getattr(eco, 'occurrences', 0) + 1
+
             eco.save()

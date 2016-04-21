@@ -8,7 +8,11 @@ class BaseJSException(Exception):
             level=1
             tags="cat:%s"%level
         super().__init__(message)
-        j.errorconditionhandler.setExceptHook()
+        # j.errorconditionhandler.setExceptHook()
+        try:
+            btkis,filename0,linenr0,func0=j.exceptionutils.getErrorTraceKIS(tb=tb)
+        except:
+            btkis,filename0,linenr0,func0=None,None,None,None
         self.message = message
         self.level = level
         self.source = source
@@ -21,6 +25,12 @@ class BaseJSException(Exception):
         self.whoami = j.application.getWhoAmiStr()
         if self.whoami == "0_0_0":
             self.whoami = ""
+
+        self.appname=j.application.appname
+        self.gid = j.application.whoAmI.gid
+        self.nid = j.application.whoAmI.nid
+        self.pid = j.application.whoAmI.pid
+        self.epoch= j.data.time.getTimeEpoch()
 
     @property
     def tags(self):
@@ -41,8 +51,11 @@ class BaseJSException(Exception):
     def msg(self):
         return "%s ((%s))" % (self.message, self.tags)
 
+    def toJson(self):
+        return self.__dict__
+
     def __str__(self):
-        out = "ERROR: %s ((%s)" % (self.message, self.tags)
+        out = "ERROR: %s ((%s))" % (self.message, self.tags)
         return out
 
     __repr__ = __str__
