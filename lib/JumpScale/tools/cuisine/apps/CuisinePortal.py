@@ -24,7 +24,8 @@ class CuisinePortal(object):
         To add spaces and actors, please use addSpace and addActor
         """
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
-        if not self.cuisine.core.isMac:
+        # if self.cuisine.core.is
+        if not self.cuisine.core.isMac and not self.cuisine.id == "localhost":
             self.cuisine.installerdevelop.jumpscale8()
             self.cuisine.pip.upgrade("pip")
         self.installDeps()

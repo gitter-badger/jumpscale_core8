@@ -1,4 +1,4 @@
-#!/usr/bin/env jspython
+#!/usr/bin/env jspython8
 
 
 from JumpScale import j

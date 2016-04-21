@@ -75,8 +75,8 @@ class CuisineInstaller(object):
             rm -f js8
             cd /usr/local/bin
             rm -f js8
-            rm -f /usr/local/bin/jspython
-            rm -f /usr/local/bin/js
+            rm -f /usr/local/bin/jspython8
+            rm -f /usr/local/bin/js8
             rm -fr /opt/*
             """
         self.cuisine.core.run_script(C, action=True,force=True)
@@ -121,8 +121,8 @@ class CuisineInstaller(object):
             if not self.cuisine.core.file_exists('/opt/jumpscale8/bin/jspython'):
                 time.sleep(2)
             else:
-                self.cuisine.core.file_link('/opt/jumpscale8/bin/jspython', '/usr/local/bin/jspython')
-                self.cuisine.core.file_link('/opt/jumpscale8/bin/js', '/usr/local/bin/js')
+                self.cuisine.core.file_link('/opt/jumpscale8/bin/jspython', '/usr/local/bin/jspython8')
+                self.cuisine.core.file_link('/opt/jumpscale8/bin/js', '/usr/local/bin/js8')
                 self.cuisine.bash.include('/opt/jumpscale8/env.sh')
                 break
 

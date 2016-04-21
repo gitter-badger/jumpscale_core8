@@ -975,10 +975,6 @@ class CuisineCore():
                 self.logger.info("PROFILECMD:%s"%cmd)
             else:
                 self.logger.debug("PROFILECMD:%s"%cmd)
-
-        if self.sudomode:
-            passwd = self.executor.passwd if hasattr(self.executor, "passwd") else ''
-            cmd = 'echo %s | sudo -S bash -c "%s"' % (passwd, cmd)
         rc,out=self.executor.execute(cmd,checkok=checkok, die=False, combinestdr=True,showout=showout)
         out = self._clean(out)
 

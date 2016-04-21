@@ -36,9 +36,12 @@ import random
 if not os.path.exists(path):
     print("overwrite")
     r=random.randint(1, 10000)#to make sure caching does not work on internet
-    cmd="curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path)
-    # print (cmd)
-    os.system(cmd)    
+    # cmd="curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path)
+    cmd = "cp /opt/code/github/jumpscale/jumpscale_core8/install/InstallTools.py %s" % path
+    print (cmd)
+    os.system(cmd)
+
+
 
 from importlib import util
 spec=util.spec_from_file_location("InstallTools",path)

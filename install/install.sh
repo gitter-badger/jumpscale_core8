@@ -58,9 +58,9 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     if [ "$dist" == "Ubuntu" ]; then
         echo "found ubuntu"
         apt-get install mc curl git ssh python3.5 -y
-        rm -f /usr/bin/python
+        #rm -f /usr/bin/python
         rm -f /usr/bin/python3
-        ln -s /usr/bin/python3.5 /usr/bin/python
+        #ln -s /usr/bin/python3.5 /usr/bin/python
         ln -s /usr/bin/python3.5 /usr/bin/python3
 
     elif [ -f "/etc/slitaz-release" ]; then
@@ -84,9 +84,9 @@ fi
 
 set -ex
 branch=${JSBRANCH-master}
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/bootstrap.py > $TMPDIR/bootstrap.py
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/InstallTools.py > $TMPDIR/InstallTools.py
+#curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/bootstrap.py > $TMPDIR/bootstrap.py
+#curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/InstallTools.py > $TMPDIR/InstallTools.py
 cd $TMPDIR
-python3.5 bootstrap.py
+python3.5 /opt/code/github/jumpscale/jumpscale_core8/install/web/bootstrap.py
 js 'j.tools.cuisine.local.installerdevelop.installJS8Deps()'
 

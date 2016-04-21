@@ -2092,10 +2092,12 @@ class Installer():
             do.symlink(src, dest2)
 
         src="%s/github/jumpscale/jumpscale_core8/shellcmds"%do.CODEDIR
-        desttest="/usr/local/bin/js"
-        if insystem or not self.exists(desttest):
-            dest="/usr/local/bin"
-            do.symlinkFilesInDir(src, dest)
+        desttest="/usr/local/bin/js8"
+        # if insystem or not self.exists(desttest):
+        #     dest="/usr/local/bin"
+        #     do.symlinkFilesInDir(src, dest)
+        do.symlink("%s/js" % src, "/usr/local/bin/js8")
+        do.symlink("%s/ays" % src, "/usr/local/bin/ays8")
 
         dest="%s/bin"%base
         do.symlinkFilesInDir(src, dest)
@@ -2342,17 +2344,18 @@ exec python3 -q "$@"
         # C2=C2.format(base=basedir, env=envfile)
         if self.readonly==False or die==True:
 
-            do.delete("/usr/bin/jspython")#to remove link
-            do.delete("%s/bin/jspython"%basedir)
-            do.delete("/usr/local/bin/jspython")
+            do.delete("/usr/bin/jspython8")#to remove link
+            # do.delete("%s/bin/jspython"%basedir)
+            do.delete("/usr/local/bin/jspython8")
+            # do.writeFile()
 
-            if not insystem:
-                dest="%s/bin/jspython"%basedir
-                C2 = C2.replace('$base', basedir)
-                do.writeFile(dest,C2)
-            else:
+            dest="%s/bin/jspython"%basedir
+            C2 = C2.replace('$base', basedir)
+            do.writeFile(dest,C2)
+            do.chmod(dest,0o770)
+            if insystem:
                 #in system
-                dest="/usr/local/bin/jspython"
+                dest="/usr/local/bin/jspython8"
                 do.writeFile(dest,C2_insystem)
             do.chmod(dest, 0o770)
 
@@ -2388,8 +2391,8 @@ exec python3 -q "$@"
             pip uninstall JumpScale-core
             # killall tmux  #dangerous
             killall redis-server
-            rm /usr/local/bin/js*
-            rm /usr/local/bin/ays*
+            #rm /usr/local/bin/js*
+            #rm /usr/local/bin/ays*
             rm -rf $base/lib/JumpScale
             rm -rf /opt/sentry/
             sudo stop redisac
@@ -2614,8 +2617,8 @@ exec python3 -q "$@"
         # [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".dist-info")!=-1]
         [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg")!=-1]
 
-        do.execute("rm -rf %s/pip*"%do.getPythonLibSystem())
-        do.execute("rm -rf %s/pip*"%do.getBinDirSystem())
+        # do.execute("rm -rf %s/pip*"%do.getPythonLibSystem())
+        # do.execute("rm -rf %s/pip*"%do.getBinDirSystem())
 
         # do.pullGitRepo("https://github.com/pypa/pip")
         # do.execute("cd %s;python3 setup.py install"%do.getGitRepoArgs("https://github.com/pypa/pip")[4])
