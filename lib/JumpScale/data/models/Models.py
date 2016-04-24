@@ -23,28 +23,54 @@ def extend(a, b):
     else:
         return b
 
-class ModelBase():
-    DoesNotExist = DoesNotExist
-
-    gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
-    nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
-    epoch = IntField(default=j.data.time.getTimeEpoch)
-    meta = default_meta
+class ModelBase0():
 
     @property
     def guid(self):
-        return self.pk
+        redis = getattr(self, '__redis__', False)
+        if redis:
+            if "_guid" in self.__dict__:
+                return self._guid
+
+            if "id" in self._fields and self.id!=None:
+                self._guid=self.id
+            elif "name" in self._fields and self.name!=None and self.name!="":
+                self._guid=self.name
+            else:
+                self._guid=j.data.idgenerator.generateGUID()
+
+        else:        
+            return self.pk
 
     @guid.setter
     def guid(self, value):
-        self.pk = value
+        redis = getattr(self, '__redis__', False)
+        if redis:
+            self._guid=value
+        else:
+            self.pk = value
 
     def to_dict(self):
+        self.guid
         d = j.data.serializer.json.loads(Document.to_json(self))
-        d.pop("_cls")
+        if "_cls" in d:    
+            d.pop("_cls")
         if "_id" in d:
             d.pop("_id")
         return d
+
+    def to_wiki(self):
+        ddict=self.to_dict()
+        keys=[item for item in ddict.keys()]
+        keys.sort()
+
+        if "name" in keys:
+            keys.pop("name")
+            keys.insert(0,"name")
+
+        if "id" in keys:
+            keys.pop("id")
+            keys.insert(0,"id")
 
     @classmethod
     def find(cls, query):
@@ -55,25 +81,91 @@ class ModelBase():
             return cls.objects(__raw__=query)
 
     @classmethod
-    def _getKey(cls, guid):
+    def findByMethod(cls, method):
+        """
+        argument to method = the object
+        when you want to return it, return True as result of the method
+
+        e.g
+
+        def mysearchMethod(obj):
+            if obj.name=="myname":
+                return True
+            return False
+
+        for item in ...findByMethod(mysearchMethod):
+            print (item)
+
+        """
+        redis = getattr(cls, '__redis__', False)
+        res=[]
+        if redis:
+            ttype = cls._class_name.split(".")[-1]
+            key = "models.%s" % ttype
+            for guid in j.core.db.hkeys(key):
+                guid=guid.decode()
+                obj=cls.get(guid)
+                if method(obj):
+                    res.append(obj)
+            return res
+        else:
+            raise j.exceptions.RuntimeError("not implemented")
+
+    @classmethod
+    def list(cls):
+        def all(o):
+            return True
+        return cls.findByMethod(all)
+
+    @classmethod
+    def redis_destroy(cls):
+        """
+        delete all items in redis
+        """
+        redis = getattr(cls, '__redis__', False)
+        res=[]
+        if redis:
+            ttype = cls._class_name.split(".")[-1]
+            key = "models.%s" % ttype
+            j.core.db.delete(key)
+
+    @property
+    def hash(self):
+        from IPython import embed
+        print ("DEBUG NOW hash")
+        embed()
+
+    @classmethod
+    def hashlist(cls):
+        """
+        get a dict which is guid,hash of obj
+        """
+        res = {}
+        for item in cls.list():
+            res[item.guid] = item.hash
+        return res
+
+    @classmethod
+    def _getRedisKey(cls, guid):
         """
         @return hsetkey,key
         """
         ttype = cls._class_name.split(".")[-1]
         key = "models.%s" % ttype
-        key = '%s_%s' % (key, guid)
         key = key.encode('utf-8')
-        return key
+        hkey = guid.encode('utf-8')
+        return (key, hkey)
 
     @classmethod
-    def get(cls, guid, returnObjWhenNonExist=False):
+    def get(cls, guid):
         """
         default needs to be in redis, need to mention if not
         """
         redis = getattr(cls, '__redis__', False)
 
         if redis:
-            modelraw = j.core.db.get(cls._getKey(guid))
+            key, hkey = cls._getRedisKey(guid)
+            modelraw = j.core.db.hget(key, hkey)
             if modelraw:
                 modelraw = modelraw.decode()
                 obj = cls.from_json(modelraw)
@@ -89,16 +181,19 @@ class ModelBase():
 
     @classmethod
     def _save_redis(cls, obj):
-        key = cls._getKey(obj.guid)
+        #leave next here to make sure it gets created
+        obj.guid
+        key,hkey = cls._getRedisKey(obj.guid)
         meta = cls._meta['indexes']
-        expire = meta[0].get('expireAfterSeconds', None) if meta else None
+        # expire = meta[0].get('expireAfterSeconds', None) if meta else None
+        #CANNOT WORK BECAUSE IS HSET, DO NOT CHANGE TO NON HSET
         raw = j.data.serializer.json.dumps(obj.to_dict())
-        j.core.db.set(key, raw)
-        if expire:
-            j.core.db.expire(key, expire)
+        j.core.db.hset(key,hkey, raw)
+        # if expire:
+        #     j.core.db.expire(key, expire)
         return obj
 
-    def validate(self, clean):
+    def validate(self, clean=True):        
         return Document.validate(self, clean)
 
     def _datatomodel(self, data):
@@ -110,6 +205,7 @@ class ModelBase():
         if data:
             self._datatomodel(data)
         if redis:
+            self.validate()
             return self._save_redis(self)
         else:
             return Document.save(self)
@@ -117,19 +213,28 @@ class ModelBase():
     def delete(self):
         redis = getattr(self, '__redis__', False)
         if redis:
-            key = self._getKey(self.guid)
+            key = self._getRedisKey(self.guid)
             j.core.db.delete(key)
         else:
             return Document.delete(self)
 
     @classmethod
     def exists(cls, guid):
-        return bool(cls.get(guid=guid))
+        redis = getattr(cls, '__redis__', False)
+        if redis:
+            key = cls._getRedisKey(cls.guid)
+            model = cls.get(key)
+            if model==None:
+                return False
+            else:
+                return True
+        else:
+            return bool(cls.get(guid=guid))
 
     def getset(cls):
         redis = getattr(cls, '__redis__', False)
-        key = cls._getKey(cls.guid)
         if redis:
+            key = cls._getRedisKey(cls.guid)
             model = cls.get(key)
             if model is None:
                 model = cls.save()
@@ -144,6 +249,13 @@ class ModelBase():
 
     __repr__ = __str__
 
+
+class ModelBase(ModelBase0):
+    DoesNotExist = DoesNotExist
+    meta = default_meta    
+    gid = IntField(default=lambda: j.application.whoAmI.gid if j.application.whoAmI else 0)
+    nid = IntField(default=lambda: j.application.whoAmI.nid if j.application.whoAmI else 0)
+    epoch = IntField(default=j.data.time.getTimeEpoch)
 
 class Errorcondition(ModelBase, Document):
     nid = IntField(required=True)
