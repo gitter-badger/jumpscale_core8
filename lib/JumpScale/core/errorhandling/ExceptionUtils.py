@@ -6,6 +6,7 @@ import time
 class ExceptionUtils:
     def __init__(self,haltOnError=True,storeErrorConditionsLocal=True):
         self.__jslocation__ = "j.exceptionutils"
+        self.logger = j.logger.get("j.exceptionutils")
         self._escalateToRedis = None
         self._escalateToRedisPopulated = False
         self.setExceptHook()
@@ -57,7 +58,7 @@ class ExceptionUtils:
         @ttype : is the description of the error
         @tb : can be a python data object or a Event
         """
-        j.logger.get('j.exceptionhook').error_tb(ttype, exceptionObject, tb)
+        self.logger.error_tb(ttype, exceptionObject, tb)
         self.store(ttype, exceptionObject, tb)
 
     def getFrames(self,tb=None):
@@ -114,7 +115,7 @@ class ExceptionUtils:
         for f,linenr in frs:
             try:
                 code,linenr2=inspect.findsource(f)
-            except IOError:
+            except Exception:
                 continue
             start=max(linenr-10,0)
             stop=min(linenr+4,len(code))
