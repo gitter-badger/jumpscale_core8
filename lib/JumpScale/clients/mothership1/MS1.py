@@ -284,7 +284,7 @@ class MS1(object):
                 try:
                     machine_id = machine_cb_actor.createOnStack(cloudspaceId=cloudspace_id, name=name, description=description, sizeId=size_ids[0], imageId=templateid, disksize=int(ssdsize), stackid=stackId, datadisks=datadisks)
                 except Exception as e:
-                    j.events.opserror_critical("Could not create machine on stack %s, unknown error : %s." % (stackId, e.message), "ms1.createmachine.exists")
+                    raise j.exceptions.OPERATIONS("Could not create machine on stack %s, unknown error : %s." % (stackId, e.message), "ms1.createmachine.exists")
         else:
             try:
                 machine_id = api.cloudapi.machines.create(cloudspaceId=cloudspace_id, name=name, description=description, \
@@ -455,7 +455,7 @@ class MS1(object):
 
         vmStatus = api.cloudapi.machines.get(machineId=machine_id)
         if vmStatus['status'] != 'HALTED':
-            j.events.opserror_critical('The VM should be alted to add a disk', category='')
+            raise j.exceptions.OPERATIONS('The VM should be alted to add a disk', category='')
 
         self.sendUserMessage('creation of the disk %s (%s GB)' % (diskName, size))
         api.cloudapi.machines.addDisk(machineId=machine_id, diskName=diskName, description=description,

@@ -263,7 +263,7 @@ class Netconfig(SALObject):
 
         print("check can reach default gw:%s"%gw)
         if not j.sal.nettools.pingMachine(gw):
-            j.events.opserror_critical("Cannot get to default gw, network configuration did not succeed for %s %s/%s -> %s"%(interface,ipaddr,mask,gw))
+            raise j.exceptions.OPERATIONS("Cannot get to default gw, network configuration did not succeed for %s %s/%s -> %s"%(interface,ipaddr,mask,gw))
         print("gw reachable")
 
         self.resetDefaultGateway(gw)
@@ -324,7 +324,7 @@ class Netconfig(SALObject):
 
         print("check can reach 8.8.8.8")
         if not j.sal.nettools.pingMachine("8.8.8.8"):
-            j.events.opserror_critical("Cannot get to public dns, network configuration did not succeed for %s (dhcp)"%(interface))
+            raise j.exceptions.OPERATIONS("Cannot get to public dns, network configuration did not succeed for %s (dhcp)"%(interface))
         print("8.8.8.8 reachable")
         print("network config done.")
 

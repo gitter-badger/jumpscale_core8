@@ -164,7 +164,7 @@ class ServiceRecipe(ServiceTemplate):
                 fullpath = j.sal.fs.joinPaths(ppath, key)
 
             if j.sal.fs.isDir(fullpath):
-                j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
+                raise j.exceptions.OPERATIONS(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
 
             service = Service(self, instance=instance, args=args, path=fullpath, parent=parent, originator=originator)
 
@@ -191,7 +191,7 @@ class ServiceRecipe(ServiceTemplate):
         # download
         for recipeitem in self.hrd_template.getListFromPrefix("web.export"):
             if "dest" not in recipeitem:
-                j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (recipeitem, self), category="ays.servicetemplate")
+                raise j.exceptions.OPERATIONS(msg="could not find dest in hrditem for %s %s" % (recipeitem, self), category="ays.servicetemplate")
 
             fullurl = "%s/%s" % (recipeitem['url'],
                                  recipeitem['source'].lstrip('/'))
@@ -222,7 +222,7 @@ class ServiceRecipe(ServiceTemplate):
             src = "%s/%s" % (dest0, recipeitem['source'])
             src = src.replace("//", "/")
             if "dest" not in recipeitem:
-                j.events.opserror_critical(msg="could not find dest in hrditem for %s %s" % (recipeitem, self), category="ays.servicetemplate")
+                raise j.exceptions.OPERATIONS(msg="could not find dest in hrditem for %s %s" % (recipeitem, self), category="ays.servicetemplate")
             dest = recipeitem['dest']
 
             dest = j.application.config.applyOnContent(dest)

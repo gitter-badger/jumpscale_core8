@@ -16,6 +16,7 @@ class whmcstickets():
         self._url = url
         self._operations_user_id = operations_user_id
         self._operations_department_id = operations_department_id
+        self.logger = j.logger.get('whmcstickets')
 
     def _call_whmcs_api(self, requestparams):
         actualrequestparams = dict()
@@ -52,7 +53,7 @@ class whmcstickets():
         content = j.data.serializer.json.loads(response.content)
         ticketid = content.get('id', None)
         if not ticketid:
-            j.events.opserror_critical('Failed to create ticket. Error: %s' % response.content, category='whmcs')
+            raise j.exceptions.OPERATIONS('Failed to create ticket. Error: %s' % response.content, category='whmcs')
         return ticketid
 
 
@@ -82,7 +83,7 @@ class whmcstickets():
         response = self._call_whmcs_api(ticket_request_params)
         content = j.data.serializer.json.loads(response.content)
         if content.pop('result') == 'error':
-            j.events.opserror_warning('Failed to update ticket %s. Error: %s' % (ticketid, response.content), category='whmcs')
+            self.logger.warn_tb(j.exceptions.OPERATIONS, 'Failed to update ticket %s. Error: %s' % (ticketid, response.content))
         return response
 
     def close_ticket(self, ticketid):
@@ -101,7 +102,7 @@ class whmcstickets():
         response = self._call_whmcs_api(ticket_request_params)
         content = j.data.serializer.json.loads(response.content)
         if content.pop('result') == 'error':
-            j.events.opserror_warning('Failed to close ticket %s. Error: %s' % (ticketid, response.content), category='whmcs')
+            self.logger.warn_tb(j.exceptions.OPERATIONS, 'Failed to close ticket %s. Error: %s' % (ticketid, response.content))
         return response.ok
 
 
@@ -114,7 +115,7 @@ class whmcstickets():
                     )
         xs = self._call_whmcs_api(ticket_request_params).content
         if j.data.serializer.json.loads(xs).get('result') == 'error':
-            j.events.opserror_warning('Failed to get ticket %s. Error: %s' % (ticketid, xs), category='whmcs')
+            self.logger.warn_tb(j.exceptions.OPERATIONS, 'Failed to get ticket %s. Error: %s' % (ticketid, xs))
         ticket = dict((attr.tag, attr.text) for attr in et.fromstring(xs))
         return ticket
 
@@ -129,7 +130,7 @@ class whmcstickets():
         response = self._call_whmcs_api(ticket_request_params)
         content = j.data.serializer.json.loads(response.content)
         if content.pop('result') == 'error':
-            j.events.opserror_warning('Failed to add note to ticket %s. Error: %s' % (ticketid, response.content), category='whmcs')
+            self.logger.warn_tb(j.exceptions.OPERATIONS, 'Failed to add note to ticket %s. Error: %s' % (ticketid, response.content))
         return response.ok
 
 

@@ -19,6 +19,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
         self._changelog = changelog
         self.namespace = namespace
         KeyValueStoreBase.__init__(self, serializers)
+        self.logger = j.logger.get('redis_store')
 
         self.hasmaster = bool(masterdb)
         self.writedb=masterdb or self
@@ -59,7 +60,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
                     while not haskey:
                         time.sleep(0.05)
                         if counter>10:
-                            j.events.bug_warning("replication error, did not find key %s"%key, 'osis')
+                            self.logger.warn_tb(j.exceptions.BUG, "replication error, did not find key %s"%key)
                             break
                         counter+=1
                         haskey = self.redisclient.exists(key)
@@ -77,7 +78,7 @@ class RedisKeyValueStore(KeyValueStoreBase):
                         while not haskey:
                             time.sleep(0.05)
                             if counter>100:
-                                j.events.bug_warning("replication error, did not find key %s"%key2, 'osis')
+                                self.logger.warn_tb(j.exceptions.BUG, "replication error, did not find key %s"%key2)
                                 break
                             counter+=1
                             haskey = self.redisclient.exists(key2)

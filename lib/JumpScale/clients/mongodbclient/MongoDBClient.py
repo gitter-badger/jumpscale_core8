@@ -21,7 +21,7 @@ class MongoDBClient:
     def getByInstance(self, instancename):
         hrd = j.application.getAppInstanceHRD(name="mongodb_client",instance=instancename)
         if hrd is None:
-            j.events.opserror_critical("Could not find mongodb_client for instance %s" % instancename)
+            raise j.exceptions.OPERATIONS("Could not find mongodb_client for instance %s" % instancename)
         ipaddr = hrd.get("param.addr")
         port = hrd.getInt("param.port")    
         ssl = False

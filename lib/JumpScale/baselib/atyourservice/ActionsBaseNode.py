@@ -98,7 +98,7 @@ class ActionsBaseNode():
             self._installFromStore(self.service)
 
         # else:
-            # j.events.opserror_critical("Can't find any means to install the service. Please enable AYSFS or consume a store_client")
+            # raise j.exceptions.OPERATIONS("Can't find any means to install the service. Please enable AYSFS or consume a store_client")
 
     def prepare(self):
         """
@@ -250,9 +250,9 @@ class ActionsBaseNode():
             elif self.service.getTCPPorts()!=[]:
                 ports=",".join([str(item) for item in self.service.getTCPPorts()])
                 msg="Could not start:%s, could not connect to ports %s."%(self.service,ports)
-                j.events.opserror_critical(msg,"service.start.failed.ports")
+                raise j.exceptions.OPERATIONS(msg,"service.start.failed.ports")
             else:
-                j.events.opserror_critical("could not start:%s"%self.service,"service.start.failed.other")
+                raise j.exceptions.OPERATIONS("could not start:%s"%self.service,"service.start.failed.other")
 
     def stop(self):
         """
@@ -335,7 +335,7 @@ class ActionsBaseNode():
             if pid not in currentpids :
                 j.sal.process.kill(pid, signal.SIGKILL)
         if not self.check_down(self.service):
-            j.events.opserror_critical("could not halt:%s"%self,"service.halt")
+            raise j.exceptions.OPERATIONS("could not halt:%s"%self,"service.halt")
         return True
 
     def check_up(self, wait=True):
@@ -533,4 +533,4 @@ class ActionsBaseNode():
                 j.atyourservice.remove(name=docker_build.name, instance=docker_build.instance)
             if error!="":
                 error="Could not build:%s\n%s"%(self,error)
-                j.events.opserror_critical(error,"ays.build")
+                raise j.exceptions.OPERATIONS(error,"ays.build")

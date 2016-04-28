@@ -284,7 +284,7 @@ class Docker(SALObject):
 
         if not replace:
             if name in self.containerNamesRunning:
-                j.events.opserror_critical("Cannot create machine with name %s, because it does already exists.")
+                raise j.exceptions.OPERATIONS("Cannot create machine with name %s, because it does already exists.")
         else:
             if self.exists(name):
                 print("remove existing container %s" % name)

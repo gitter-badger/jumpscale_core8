@@ -185,7 +185,7 @@ class SSHClient(object):
                 self._connection_ok = False
                 err = "Could not connect to ssh on %s@%s:%s" % (self.login, self.addr, self.port)
                 if die:
-                    j.events.opserror_critical(err)
+                    raise j.exceptions.OPERATIONS(err)
                 else:
                     self.logger.error(err)
                 return self._connection_ok

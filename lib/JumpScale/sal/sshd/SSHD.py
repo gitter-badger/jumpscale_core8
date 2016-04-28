@@ -109,11 +109,11 @@ class SSHD(SALObject):
     #         local = j.tools.executor.getLocal()
     #         pids = j.sal.process.getPidsByFilter('ssh-agent')
     #         if not pids:
-    #             j.events.opserror_critical(errormsg)
+    #             raise j.exceptions.OPERATIONS(errormsg)
 
     #         rc, keys = local.execute('ssh-add -L')
     #         if keys == 'The agent has no identities.':
-    #             j.events.opserror_critical(errormsg)
+    #             raise j.exceptions.OPERATIONS(errormsg)
 
     #         for key in keys.splitlines():
     #             key, path = key.rsplit(maxsplit=1)
@@ -122,13 +122,13 @@ class SSHD(SALObject):
     #         return False
 
     #     if sshkeypath != "" and not j.tools.path.get(sshkeypath).exists():
-    #         j.events.opserror_critical("Cannot find key on %s" % sshkeypath)
+    #         raise j.exceptions.OPERATIONS("Cannot find key on %s" % sshkeypath)
 
     #     if recoverypasswd == "" and "recoverypasswd" in os.environ:
     #         recoverypasswd = os.environ["recoverypasswd"]
 
     #     if len(recoverypasswd) < 6:
-    #         j.events.opserror_critical(
+    #         raise j.exceptions.OPERATIONS(
     #             "Choose longer passwd (min 6), do this by doing 'export recoverypasswd=something' before self.running this script.")
 
     #     if sshkeypath != "":

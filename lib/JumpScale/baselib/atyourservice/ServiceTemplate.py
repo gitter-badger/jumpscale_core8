@@ -70,7 +70,7 @@ class ServiceTemplate(object):
                     self.path_hrd_template = templ.path_hrd_template
                     return self._hrd
             self._hrd=j.data.hrd.get(content="")
-            # j.events.opserror_critical(msg="can't find %s." % hrdpath, category="ays load hrd template")
+            # raise j.exceptions.OPERATIONS(msg="can't find %s." % hrdpath, category="ays load hrd template")
         else:
             self._hrd = j.data.hrd.get(hrdpath, prefixWithName=False)
         return self._hrd

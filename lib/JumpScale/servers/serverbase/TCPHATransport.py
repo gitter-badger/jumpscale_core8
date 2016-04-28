@@ -50,7 +50,7 @@ class TCPHATransport(Transport):
                 connection[2] = time.time()
         ips = [ "%s:%s" % (con[0], con[1]) for con in self._connections ]
         msg = "Failed to connect to %s" % (", ".join(ips))
-        j.events.opserror_critical(msg)
+        raise j.exceptions.OPERATIONS(msg)
 
     @retry
     def sendMsg(self, category, cmd, data, sendformat="", returnformat="",timeout=None):

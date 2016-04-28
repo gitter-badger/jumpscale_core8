@@ -128,7 +128,8 @@ class GitlabInstance():
         if len(items)>0:
             return items[0]
         else:
-            j.events.inputerror_warning("cannot find group:%s in gitlab"%name)
+            logger = j.logger.get('GitlabInstance')
+            logger.warn_tb(j.exceptions.Input, "cannot find group:%s in gitlab"%name)
             return False
 
     def getProjects(self):
@@ -192,7 +193,7 @@ class GitlabInstance():
         if len(user) == 1:
             return user[0]
         else:
-            j.events.opserror_critical('username %s not found' % username)
+            raise j.exceptions.OPERATIONS('username %s not found' % username)
 
     def userExists(self, username, renew=False):
         """

@@ -37,7 +37,7 @@ opts = cmdutils.processLogin(parser)
 
 #clients = j.atyourservice.findServices(role='osis_client')
 #if len(clients) < 1:
-#    j.events.opserror_critical(
+#    raise j.exceptions.OPERATIONS(
 #        msg="can't find any osis client, please install one", category="jsuser")
 
 #osis = j.clients.osis.getByInstance(clients[0].instance)

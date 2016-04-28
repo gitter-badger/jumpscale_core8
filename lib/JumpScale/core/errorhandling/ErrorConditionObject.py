@@ -21,6 +21,8 @@ class ErrorConditionObject(BaseException):
     @param level #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel
     """
     def __init__(self,ddict={},msg="",msgpub="",category="",level=1,type="UNKNOWN",tb=None, data=None,tags=""):
+        self.logger = j.logger.get("eco")
+
         if ddict!={}:
             self.__dict__=ddict
         else:
@@ -159,7 +161,7 @@ class ErrorConditionObject(BaseException):
 
         # types=["INPUT","MONITORING","OPERATIONS","PERFORMANCE","BUG","UNKNOWN"]
         # if not self.type in types:
-        #     j.events.inputerror_warning("Errorcondition was thrown with wrong type.\n%s"%str(self),"eco.check.type")
+        #     self.logger.warn_tb(j.exceptions.INPUT, "Errorcondition was thrown with wrong type.\n%s"%str(self))
 
         if not j.data.types.int.check(self.level):
             try:
@@ -168,11 +170,11 @@ class ErrorConditionObject(BaseException):
                 pass
             if not j.data.types.int.check(param.level):
                 self.level=1
-                j.events.inputerror_warning("Errorcondition was thrown with wrong level, needs to be int.\n%s"%str(self.errormessage),"eco.check.level")
+                self.logger.warn_tb(j.exceptions.INPUT, "Errorcondition was thrown with wrong level, needs to be int.\n%s"%str(self.errormessage))
 
         if self.level>4:
             raise RuntimeError("Errorcondition was thrown with wrong level, needs to be max 4.")
-            # j.events.inputerror_warning("Errorcondition was thrown with wrong level, needs to be max 4.\n%s"%str(self.errormessage),"eco.check.level")
+            # self.logger.warn_tb(j.exceptions.INPUT, "Errorcondition was thrown with wrong level, needs to be max 4.\n%s"%str(self.errormessage))
             self.level=4
 
         res=j.errorconditionhandler._send2Redis(self)

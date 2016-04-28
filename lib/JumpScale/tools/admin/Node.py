@@ -192,7 +192,7 @@ class Node():
         # if j.sal.nettools.pingMachine(self.args.remote,1):
         #     self.ip=self.args.remote
         # else:
-        #     j.events.opserror_critical("Could not ping node:'%s'"% self.args.remote)
+        #     raise j.exceptions.OPERATIONS("Could not ping node:'%s'"% self.args.remote)
 
         return self.ssh
 

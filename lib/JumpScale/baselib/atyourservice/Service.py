@@ -315,7 +315,7 @@ class Service:
                 self.hrd.applyOnFile(path2)
             j.application.config.applyOnFile(path2)
         else:
-            j.events.opserror_critical(msg="can't find %s." % path, category="ays loadActions")
+            raise j.exceptions.OPERATIONS(msg="can't find %s." % path, category="ays loadActions")
 
         modulename = "JumpScale.atyourservice.%s.%s.%s.%s" % (self.domain, self.name, self.instance, ttype)
         mod = loadmodule(modulename, path2)

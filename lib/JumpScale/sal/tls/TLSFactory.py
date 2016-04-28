@@ -17,7 +17,7 @@ class TLSFactory(SALObject):
     #     cfssl = None
     #     services = j.atyourservice.findServices(name='cfssl', instance=instance)
     #     if len(services) <= 0:
-    #         j.events.opserror_critical(msg="Can't find cfssl service with instance name %s" % instance, category="cfssl.load")
+    #         raise j.exceptions.OPERATIONS(msg="Can't find cfssl service with instance name %s" % instance, category="cfssl.load")
     #     else:
     #         cfssl = services[0]
 

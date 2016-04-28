@@ -136,7 +136,7 @@ class KVM(SALObject):
                 else:
                     return '192.168.66.%s' % i
 
-        j.events.opserror_critical("could not find free ip addr for KVM in 192.168.66.0/24 range","kvm.ipaddr.find")
+        raise j.exceptions.OPERATIONS("could not find free ip addr for KVM in 192.168.66.0/24 range","kvm.ipaddr.find")
 
 
     def create(self, name, baseimage, replace=True, description='', size=10, memory=512, cpu_count=1, bridges=None):
