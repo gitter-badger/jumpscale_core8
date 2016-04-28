@@ -2,13 +2,15 @@ import traceback
 from JumpScale import j
 import sys
 import time
+from Colors import LoggingColorizer
 
 class ExceptionUtils:
     def __init__(self,haltOnError=True,storeErrorConditionsLocal=True):
         self.__jslocation__ = "j.exceptionutils"
         self._escalateToRedis = None
         self._escalateToRedisPopulated = False
-        sys.excepthook = self.excepthook
+        self.setExceptHook()
+        self.colorizer = LoggingColorizer("default", False)
 
     @property
     def escalateToRedis(self):
@@ -24,8 +26,7 @@ class ExceptionUtils:
         sys.excepthook = self.excepthook
 
     def _log(self, ttype, exceptionObject, tb):
-        print("".join(traceback.format_exception(ttype, exceptionObject, tb)))
-        return True
+        return self.colorizer.colorize_traceback(ttype, exceptionObject, tb)
 
     def getId(self, json):
         return j.data.hash.md5_string(','.join('%s:%s'%(i, json[i]) for i in sorted(json.keys()) if i not in ["epoch"]))
