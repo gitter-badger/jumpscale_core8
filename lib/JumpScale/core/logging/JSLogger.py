@@ -1,5 +1,7 @@
 from JumpScale import j
+import sys
 import logging
+from Colors import LoggingColorizer
 
 class JSLogger(logging.Logger):
 
@@ -7,6 +9,14 @@ class JSLogger(logging.Logger):
         super(JSLogger, self).__init__(name)
         self.custom_filters = {}
         self.__only_me = False
+        self.colorizer = LoggingColorizer("default", False)
+
+    def error_tb(self, ttype=None, exceptionObject=None, tb=None):
+        if self.isEnabledFor(logging.ERROR):
+            if (ttype, exceptionObject, tb) == (None, None, None):
+                ttype, exceptionObject, tb = sys.exc_info()
+            colored_tb = self.colorizer.colorize_traceback(ttype, exceptionObject, tb)
+            self._log(logging.ERROR, colored_tb, ())
 
     def enable_only_me(self):
         """

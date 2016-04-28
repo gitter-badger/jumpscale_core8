@@ -2,7 +2,6 @@ import traceback
 from JumpScale import j
 import sys
 import time
-from Colors import LoggingColorizer
 
 class ExceptionUtils:
     def __init__(self,haltOnError=True,storeErrorConditionsLocal=True):
@@ -10,7 +9,6 @@ class ExceptionUtils:
         self._escalateToRedis = None
         self._escalateToRedisPopulated = False
         self.setExceptHook()
-        self.colorizer = LoggingColorizer("default", False)
 
     @property
     def escalateToRedis(self):
@@ -24,9 +22,6 @@ class ExceptionUtils:
     
     def setExceptHook(self):
         sys.excepthook = self.excepthook
-
-    def _log(self, ttype, exceptionObject, tb):
-        return self.colorizer.colorize_traceback(ttype, exceptionObject, tb)
 
     def getId(self, json):
         return j.data.hash.md5_string(','.join('%s:%s'%(i, json[i]) for i in sorted(json.keys()) if i not in ["epoch"]))
@@ -43,9 +38,6 @@ class ExceptionUtils:
         json["epoch"] = time.time()
         return json
 
-    def _store(self, ttype, exceptionObject, tb):
-        return self._send2Redis(ttype, exceptionObject, tb)
-
     def _send2Redis(self, ttype, exceptionObject, tb):
         if self.escalateToRedis is not None:
             json = self.toJson(ttype, exceptionObject, tb)
@@ -53,12 +45,10 @@ class ExceptionUtils:
             res = self.escalateToRedis(keys=["queues:eco","eco:%s"%(json["id"])],args=[data])
             return j.data.serializer.json.loads(res)
 
-
-    def log(self):
-        return self._log(*sys.exc_info())
-
-    def store(self):
-        return self._store(*sys.exc_info())
+    def store(self, ttype=None, exceptionObject=None, tb=None):
+        if (ttype, exceptionObject, tb) == (None, None, None):
+            ttype, exceptionObject, tb = sys.exc_info()
+        return self._send2Redis(ttype, exceptionObject, tb)
 
     def excepthook(self, ttype, exceptionObject, tb):
         """ every fatal error in jumpscale or by python itself will result in an exception
@@ -67,8 +57,8 @@ class ExceptionUtils:
         @ttype : is the description of the error
         @tb : can be a python data object or a Event
         """
-        self._log(ttype, exceptionObject, tb)
-        self._store(ttype, exceptionObject, tb)
+        j.logger.get('j.exceptionhook').error_tb(ttype, exceptionObject, tb)
+        self.store(ttype, exceptionObject, tb)
 
     def getFrames(self,tb=None):
 

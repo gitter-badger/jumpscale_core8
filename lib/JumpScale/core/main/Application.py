@@ -53,7 +53,7 @@ class Application:
         j.do.debug = value
 
     def init(self):
-        j.errorconditionhandler.setExceptHook()
+        # j.exceptionutils.setExceptHook()
 
         logging_cfg = self.config.getDictFromPrefix('logging')
         level = logging_cfg.get('level', 'DEBUG')
