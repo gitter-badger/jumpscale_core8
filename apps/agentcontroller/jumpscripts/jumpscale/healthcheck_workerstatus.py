@@ -16,6 +16,7 @@ log = True
 
 
 def action():
+    logger = j.logger.get('healthcheck_workerstatus')
     rediscl = j.clients.redis.getByInstance('system')
     timemap = {'default': '-2m', 'io': '-2h', 'hypervisor': '-10m', 'process': '-1m'}
     results = list()
@@ -29,7 +30,7 @@ def action():
         if j.base.time.getEpochAgo(timeout) < lastactive:
             result['state'] = 'OK'
         else:
-            j.errorconditionhandler.raiseOperationalCritical(result['message'], 'monitoring', die=False)
+            logger.warn_tb(j.exceptions.OPERATIONS, result['message'])
             result['state'] = 'ERROR'
 
 

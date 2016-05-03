@@ -103,10 +103,10 @@ class NetTools(SALObject):
         try:
             code = urllib.request.urlopen(url, timeout=timeout).getcode()
         except Exception:
-            j.errorconditionhandler.raiseOperationalCritical("Url %s is unreachable" % url)
+            raise j.exceptions.OPERATIONS("Url %s is unreachable" % url)
 
         if code != 200:
-            j.errorconditionhandler.raiseOperationalCritical("Url %s is unreachable" % url)
+            raise j.exceptions.OPERATIONS("Url %s is unreachable" % url)
         return True
 
     def checkListenPort(self, port):
@@ -608,7 +608,7 @@ class NetTools(SALObject):
         if j.core.platformtype.myplatform.isUnix():
             if self.isIpInDifferentNetwork(ipaddress):
                 warning = 'The IP address %s is from a different subnet. This means that the macaddress will be the one of the gateway/router instead of the correct one.'
-                j.errorconditionhandler.raiseWarning(warning % ipaddress)
+                self.logger.warn_tb(j.exceptions.RuntimeError, warning % ipaddress)
 
             exitcode, output = doArp(ipaddress)
             # Output of arp is 1 when no entry found is 1 on solaris but 0

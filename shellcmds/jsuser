@@ -138,12 +138,10 @@ if opts.action == 'add' or opts.action == 'set':
             "comma separated list of emails").split(',')
 
     if opts.action == 'add' and j.data.models.system.User.find({'name': name}):
-        j.errorconditionhandler.raiseOperationalCritical(
-            message='user already exists', category="jsuser.add.exists")
+        raise j.exceptions.OPERATIONS('user already exists')
 
     if not _isValidUserName(name):
-        j.errorconditionhandler.raiseOperationalCritical(
-            message='Username name may not exceed 20 characters and may only contain a-z and 0-9', category="jsuser.add.invalid")
+        raise j.exceptions.OPERATIONS('Username name may not exceed 20 characters and may only contain a-z and 0-9')
 
     user = j.data.models.system.User()
     user.name = name
@@ -175,8 +173,7 @@ if opts.action == 'addgroup' or opts.action == 'delgroup':
         j.application.stop(1)
     userguid = getUserGUID(opts.groupuser)
     if not userguid:
-        j.errorconditionhandler.raiseOperationalCritical(
-            message='cannot find user:%s' % opts.user, category="jsuser.add.exists")
+        raise j.exceptions.OPERATIONS('cannot find user:%s' % opts.user)
     user = j.data.models.system.User.get(userguid)
 
     if opts.action == 'delgroup':

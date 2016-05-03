@@ -18,6 +18,7 @@ period = 600
 log = True
 
 def action():
+    logger = j.logger.get('healthcheck_redis')
     ports = {}
     results = list()
 
@@ -38,7 +39,7 @@ def action():
             errmsg = 'redis not operational[halted or not installed]'
             if not pids:
                 state = 'ERROR'
-                j.errorconditionhandler.raiseOperationalCritical(errmsg, 'monitoring', die=False)
+                logger.warn_tb(j.exceptions.OPERATIONS, errmsg)
                 used_memory = 0
                 maxmemory = 0
             else:
@@ -47,7 +48,7 @@ def action():
                     state = 'OK'
                 else:
                     state = 'ERROR'
-                    j.errorconditionhandler.raiseOperationalCritical(errmsg, 'monitoring', die=False)
+                    logger.warn_tb(j.exceptions.OPERATIONS, errmsg)
 
                 maxmemory = float(rcl.config_get('maxmemory').get('maxmemory', 0))
                 used_memory = rcl.info()['used_memory']
@@ -59,7 +60,7 @@ def action():
 
                 if (used_memory / maxmemory) * 100 > 90:
                     state = 'WARNING'
-                    j.errorconditionhandler.raiseOperationalWarning(result['message'], 'monitoring')
+                    logger.warn_tb(j.exceptions.OPERATIONS, result['message'])
       
             result['state'] = state
             results.append(result)

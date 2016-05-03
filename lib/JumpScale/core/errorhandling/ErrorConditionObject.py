@@ -12,22 +12,21 @@ import sys
 import colored_traceback
 colored_traceback.add_hook(always=True)
 import traceback
+from Exceptions import BaseJSException
 
-LEVELMAP = {1: 'CRITICAL', 2: 'WARNING', 3: 'INFO', 4: 'DEBUG'}
-
-class ErrorConditionObject(BaseException):
+class ErrorConditionObject(BaseJSException):
     """
     @param type #BUG,INPUT,MONITORING,OPERATIONS,PERFORMANCE,UNKNOWN  
     @param level #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel
     """
-    def __init__(self,ddict={},msg="",msgpub="",category="",level=1,type="UNKNOWN",tb=None, data=None,tags=""):
+    def __init__(self,ddict={},msg="",msgpub="",category="",level=1,type="UNKNOWN",tb=None, data=None):
         self.logger = j.logger.get("eco")
 
         if ddict!={}:
             self.__dict__=ddict
         else:
 
-            btkis,filename0,linenr0,func0=j.errorconditionhandler.getErrorTraceKIS(tb=tb)
+            btkis,filename0,linenr0,func0=j.exceptionutils.getErrorTraceKIS(tb=tb)
 
             # if len(btkis)>1:
             #     self.backtrace=self.getBacktrace(btkis,filename0,linenr0,func0)
@@ -38,7 +37,6 @@ class ErrorConditionObject(BaseException):
             self.errormessagePub=msgpub
             self.level=int(level) #1:critical, 2:warning, 3:info see j.enumerators.ErrorConditionLevel.
             self.data = data
-            self.tags=tags
             
             if len(btkis)>0:                
                 self.code=btkis[-1][0]
@@ -68,7 +66,6 @@ class ErrorConditionObject(BaseException):
             if tb != None:
                 self.tb=tb
 
-            self.tags="" #e.g. machine:2323
             self.state="NEW" #["NEW","ALERT","CLOSED"]
 
             self.lasttime=0 #last time there was an error condition linked to this alert
@@ -177,7 +174,7 @@ class ErrorConditionObject(BaseException):
             # self.logger.warn_tb(j.exceptions.INPUT, "Errorcondition was thrown with wrong level, needs to be max 4.\n%s"%str(self.errormessage))
             self.level=4
 
-        res=j.errorconditionhandler._send2Redis(self)
+        res=j.exceptionutils._send2Redis(self)
         if res!=None:
             self.__dict__=res
 
@@ -193,8 +190,6 @@ class ErrorConditionObject(BaseException):
         content="\n\n***ERROR***\n"
         if self.type!="UNKNOWN":
             content+="  type/level: %s/%s\n" % (self.type,self.level)
-        # if self.tags!="":
-        #     content+="tags: %s\n" % self.tags
         content+="%s\n" % self.errormessage
         if self.errormessagePub!="" and self.errormessagePub!=None:
             content+="errorpub:\n%s\n\n" % self.errormessagePub
@@ -227,7 +222,7 @@ class ErrorConditionObject(BaseException):
     
     # def getBacktrace(self,btkis=None,filename0=None,linenr0=None,func0=None):
     #     if btkis==None:
-    #         btkis,filename0,linenr0,func0=j.errorconditionhandler.getErrorTraceKIS()
+    #         btkis,filename0,linenr0,func0=j.exceptionutils.getErrorTraceKIS()
     #     out=""
     #     # out="File:'%s'\nFunction:'%s'\n"%(filename0,func0)
     #     # out+="Linenr:%s\n*************************************************************\n\n"%linenr0
@@ -305,73 +300,6 @@ class ErrorConditionObject(BaseException):
             return False
 
         return True
-
-    # def getBacktraceDetailed(self,tracebackObject=""):
-    #     """
-    #     Get stackframe log
-    #     is a very detailed log with filepaths, code locations & global vars, this output can become quite big
-    #     """        
-    #     import inspect
-    #     if j.application.skipTraceback:
-    #         return ""
-    #     sep="\n"+"-"*90+"\n"
-    #     result = ''
-    #     if not tracebackObject:
-    #         return "" #@todo needs to be fixed so it does work
-    #     if tracebackObject==None:
-    #         tracebackObject = inspect.currentframe()  #@todo does not work
-    #     frames = inspect.getinnerframes(tracebackObject, 16)
-    #     nrlines=0
-    #     for (frame, filename, lineno, fun, context, idx) in frames:
-    #         ##result = result + "-"*50 + "\n\n"
-    #         nrlines+=1
-    #         if nrlines>100:
-    #             return result
-    #         location=filename + "(line %d) (function %s)\n" % (lineno, fun)
-    #         if location.find("EventHandler.py")==-1:
-    #             result += "  " + sep
-    #             result += "  " + location
-    #             result += "  " + "========== STACKFRAME==========\n"
-    #             if context:
-    #                 l = 0
-    #                 for line in context:
-    #                     prefix = "    "
-    #                     if l == idx:
-    #                         prefix = "--> "
-    #                     l += 1
-    #                     result += prefix + line
-    #                     nrlines+=1
-    #                     if nrlines>100:
-    #                         return result
-    #             result += "  " + "============ LOCALS============\n"
-    #             for (k,v) in sorted(frame.f_locals.items()):
-    #                 if self._filterLocals(k,v):
-    #                     try:
-    #                         result += "    %s : %s\n" % (str(k), str(v))
-    #                     except:
-    #                         pass
-    #                     nrlines+=1
-    #                     if nrlines>100:
-    #                         return result
-
-    #                     ##result += "  " + "============ GLOBALS============\n"
-    #             ##for (k,v) in sorted(frame.f_globals.iteritems()):
-    #             ##    if self._filterLocals(k,v):
-    #             ##        result += "    %s : %s\n" % (str(k), str(v))
-    #     self.backtrace=result
-
-    # def getCategory(self):
-    #     return "eco"
-
-    # def getObjectType(self):
-    #     return 3
-
-    # def getVersion(self):
-    #     return 1
-
-    # def getMessage(self):
-    #     #[$objecttype,$objectversion,guid,$object=data]
-    #     return [3,1,self.guid,self.__dict__]
 
     def getContentKey(self):
         """

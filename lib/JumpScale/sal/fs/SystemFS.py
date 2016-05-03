@@ -169,7 +169,8 @@ def unlock_(lockname):
         except:
             return
         if int(pid) != os.getpid():
-            j.errorconditionhandler.raiseWarning("Lock %r not owned by this process" %lockname)
+            logger = j.logger.get('interprocess_lock')
+            logger.warn_tb(j.exceptions.RuntimeError, "Lock %r not owned by this process" %lockname)
             return
 
         j.sal.fs.remove(lockfile)

@@ -20,6 +20,7 @@ log = True
 
 
 def action():
+    logger = j.logger.get('healthcheck_disk')
     result = dict()
     pattern = None
 
@@ -50,10 +51,10 @@ def action():
         if disk.free and disk.size:
             freepercent = (disk.free / float(disk.size)) * 100
             if checkusage and (freepercent < 10):
-                j.errorconditionhandler.raiseOperationalWarning(result['message'], 'monitoring')
+                logger.warn_tb(j.exceptions.OPERATIONS, result['message'])
                 result['state'] = 'WARNING'
             if checkusage and (freepercent < 5):
-                j.errorconditionhandler.raiseOperationalCritical(result['message'], 'monitoring', die=False)
+                logger.warn_tb(j.exceptions.OPERATIONS, result['message'])
                 result['state'] = 'ERROR'
         results.append(result)
 

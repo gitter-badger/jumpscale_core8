@@ -256,13 +256,8 @@ class CodeGenerator:
             sys.path.append(pp)
         ns = dict()
         exec(compile("import %s" % name, '<string>', 'exec'), ns)
-        try:
-            #exec("from %s import %s" % (name,classname))
-            exec("import %s" % name)
-        except Exception as e:
-            print(e)
-            #emsg="could not import code for name:%s " % (name)
-            j.errorconditionhandler.raiseBug("", "spec.import", e)
+        #exec("from %s import %s" % (name,classname))
+        exec("import %s" % name)
 
         # if getclass:
         try:

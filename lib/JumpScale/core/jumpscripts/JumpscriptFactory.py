@@ -137,9 +137,8 @@ from JumpScale import j
         except Exception as e:
             print("error in jumpscript factory: execute in process.")
             eco = self._getECO(e)
-            print(eco)
-            j.errorconditionhandler.raiseOperationalCritical(eco=eco,die=False)
-            print(eco)
+            self.logger.warn_tb(j.exceptions.OPERATIONS, eco.errormessage, store=False)
+            eco.parse()
             return False, eco
 
 

@@ -232,8 +232,8 @@ class EasyDialogConsole(EasyDialogGeneric):
             try:
                 return self._showPage(choices, pageSize, currentLocation, defaultValue, multiSelection, False)
             except :
-                t,v,tb = sys.exc_info()
-                j.errorconditionhandler.logTryExcept(t,v,tb)
+                logger = j.logger.get('EasyDialogConsole')
+                logger.error_tb()
                 return ask(choices, pageSize, currentLocation, defaultValue, multiSelection)
 
         currentLocation = 0

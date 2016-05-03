@@ -262,11 +262,11 @@ class RemoteSystemProcess(_remoteSystemObject):
 
         if dieOnError and exitcode == 1000:
             message = "Process terminated with unknown exitcode!!.\nOutput:\n%s.\nError:\n%s\n" % (output, error)
-            j.errorconditionhandler.raiseOperationalCritical(message, category="system.remote.execute.fatalerror", die=True)
+            raise j.exceptions.OPERATIONS(message)
 
         if dieOnError and exitcode != 0:
             message = "Process terminated with non 0 exitcode, got exitcode: " + str(exitcode) + " and Error:\n" + error + "\n\nOutput:\n" + output
-            j.errorconditionhandler.raiseOperationalCritical(message, category="system.remote.execute.fatalerror", die=True)
+            raise j.exceptions.OPERATIONS(message)
 
         return exitcode, output, error
 

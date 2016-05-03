@@ -2,6 +2,7 @@ import traceback
 from JumpScale import j
 import sys
 import time
+import inspect
 
 class ExceptionUtils:
     def __init__(self,haltOnError=True,storeErrorConditionsLocal=True):
@@ -61,6 +62,32 @@ class ExceptionUtils:
         self.logger.error_tb(ttype, exceptionObject, tb)
         # self.store(ttype, exceptionObject, tb)
 
+    def getErrorTraceKIS(self,tb=None):
+        out=[]
+        nr=1
+        filename0="unknown"
+        linenr0=0
+        func0="unknown"
+        frs=self.getFrames(tb=tb)
+        frs.reverse()
+        for f,linenr in frs:
+            try:
+                code,linenr2=inspect.findsource(f)
+            except Exception:
+                continue
+            start=max(linenr-10,0)
+            stop=min(linenr+4,len(code))
+            code2="".join(code[start:stop])
+            finfo=inspect.getframeinfo(f)
+            linenr3=linenr-start-1
+            out.append((finfo.filename,finfo.function,linenr3,code2,linenr))
+            if nr==1:
+                filename0=finfo.filename
+                linenr0=linenr
+                func0=finfo.function
+
+        return out,filename0,linenr0,func0
+ 
     def getFrames(self,tb=None):
 
         def _getitem_from_frame(f_locals, key, default=None):
@@ -103,29 +130,3 @@ class ExceptionUtils:
                 result.append((frame,linenr))
 
         return result
-
-    def getErrorTraceKIS(self,tb=None):
-        out=[]
-        nr=1
-        filename0="unknown"
-        linenr0=0
-        func0="unknown"
-        frs=self.getFrames(tb=tb)
-        frs.reverse()
-        for f,linenr in frs:
-            try:
-                code,linenr2=inspect.findsource(f)
-            except Exception:
-                continue
-            start=max(linenr-10,0)
-            stop=min(linenr+4,len(code))
-            code2="".join(code[start:stop])
-            finfo=inspect.getframeinfo(f)
-            linenr3=linenr-start-1
-            out.append((finfo.filename,finfo.function,linenr3,code2,linenr))
-            if nr==1:
-                filename0=finfo.filename
-                linenr0=linenr
-                func0=finfo.function
-
-        return out,filename0,linenr0,func0

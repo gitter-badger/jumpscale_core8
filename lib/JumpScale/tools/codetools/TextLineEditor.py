@@ -73,7 +73,7 @@ class TextLineEditor():
 
     def _processLine(self,lineObject,blockname,next=False):
         if lineObject.block==blockname:
-            j.errorconditionhandler.raiseBug(message="Cannot find block with name %s in block which has already same name"%blo,category="lineeditor")
+            raise j.exceptions.BUG("Cannot find block with name %s in block which has already same name"%blo)
         lineObject.block=blockname
         if next:
             lineObject.blocknr=self.getNextBlockNr(blockname)

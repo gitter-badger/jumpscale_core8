@@ -20,6 +20,7 @@ class Admin():
         self.hostKeys=[]
         self.gridNameAliases={}
         self.sysadminPasswd=""
+        self.logger = j.logger.get("j.tools.admin")
 
         # DO NOT USE CREDIS IN THIS CONTEXT, NOT THREAD SAFE
         self.redis = j.clients.redis.get("127.0.0.1", 9999)
@@ -195,11 +196,7 @@ class Admin():
                 node.actionsDone[jsname]=now
                 node.lastcheck=now
             except BaseException as e:
-                msg="error in execution of %s.Stack:\n%s\nError:\n%s\n"%(jsname,j.errorconditionhandler.parsePythonExceptionObject(e),e)
-                sr.state="ERROR"
-                sr.error+=msg
-                print() 
-                print(msg)
+                self.logger.error_tb()
                 if jsname in node.actionsDone:
                     node.actionsDone.pop(jsname)
             self.setNode(node)

@@ -525,7 +525,7 @@ class ActionsBaseNode():
             dockerExecutor.download("/tmp/aysfs/md/*", self.path)
         except Exception as e:
             error=j.errorconditionhandler.parsePythonExceptionObject(e)
-            eco.getBacktraceDetailed()
+            e.parse()
         finally:
             if debug==False:
                 docker_build.stop()

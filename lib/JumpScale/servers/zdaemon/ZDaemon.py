@@ -15,8 +15,8 @@ class ZDaemon(GeventLoop):
     def __init__(self, port=None, name="", nrCmdGreenlets=50, sslorg="", ssluser="", sslkeyvaluestor=None):
         gevent.monkey.patch_socket()
         GeventLoop.__init__(self)
-
         self.name = name
+        self.logger = j.logger.get(name)
 
         if sslkeyvaluestor == None:
             sslkeyvaluestor = j.sal.ssl.getSSLHandler(sslkeyvaluestor)
@@ -149,8 +149,7 @@ class ZDaemon(GeventLoop):
     #             return found
     #         gevent.sleep(0.01)
 
-    #     j.errorconditionhandler.raiseOperationalCritical(msgpub="Cannot open port nr %s for client daemon."%found,
-    #                                                      message="", category="grid.startup", die=False, tags="")
+    #     self.logger.warn_tb(j.exceptions.OPERATIONS, "Cannot open port nr %s for client daemon."%found)
     #     return 0
 
     # def watchdogCheck(self):

@@ -40,10 +40,10 @@ class GridFactory():
         if test:
 
             if self.id == 0:
-                j.errorconditionhandler.raiseInputError(msgpub="Grid needs grid id to be filled in in grid config file", message="", category="", die=True)
+                raise j.exceptions.Input("Grid needs grid id to be filled in in grid config file")
 
             if self.nid == 0:
-                j.errorconditionhandler.raiseInputError(msgpub="Grid needs grid node id (grid.nid) to be filled in in grid config file", message="", category="", die=True)
+                raise j.exceptions.Input("Grid needs grid node id (grid.nid) to be filled in in grid config file")
 
 
     def init(self,description="",instance=1):

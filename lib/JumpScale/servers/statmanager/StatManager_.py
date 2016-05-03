@@ -209,8 +209,7 @@ class StatManager():
                 id, value = splitted
                 epoch = now
             else:
-                j.errorconditionhandler.raiseMonitoringError("Line '%s' not well constructed, cannot process monitoring stat info", id)
-                continue
+                raise j.exceptions.Monitoring("Line '%s' not well constructed, cannot process monitoring stat info"%id)
             id = str(id.lower())
             if value.find(".") != -1:
                 value = float(value)

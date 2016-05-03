@@ -8,7 +8,7 @@ class BaseJSException(Exception):
             level=1
             tags="cat:%s"%level
         super().__init__(message)
-        # j.errorconditionhandler.setExceptHook()
+
         try:
             btkis,filename0,linenr0,func0=j.exceptionutils.getErrorTraceKIS(tb=tb)
         except:
@@ -126,4 +126,18 @@ class NotFound(BaseJSException):
     def __init__(self, message="", level=1, source="", actionkey="", eco=None, tags="", msgpub=""):
         super().__init__(message, level, source, actionkey, eco, tags, msgpub)
         self.type = "notfound"
+        self.codetrace = False
+
+class Monitoring(BaseJSException):
+
+    def __init__(self, message="", level=1, source="", actionkey="", eco=None, tags="", msgpub=""):
+        super().__init__(message, level, source, actionkey, eco, tags, msgpub)
+        self.type = "monitoring"
+        self.codetrace = False
+
+class Performance(BaseJSException):
+
+    def __init__(self, message="", level=1, source="", actionkey="", eco=None, tags="", msgpub=""):
+        super().__init__(message, level, source, actionkey, eco, tags, msgpub)
+        self.type = "performance"
         self.codetrace = False
