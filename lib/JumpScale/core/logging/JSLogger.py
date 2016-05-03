@@ -11,12 +11,25 @@ class JSLogger(logging.Logger):
         self.__only_me = False
         self.colorizer = LoggingColorizer("default", False)
 
-    def error_tb(self, ttype=None, exceptionObject=None, tb=None):
+    def error_tb(self, ttype=None, exceptionObject=None, tb=None, store=True):
         if self.isEnabledFor(logging.ERROR):
             if (ttype, exceptionObject, tb) == (None, None, None):
                 ttype, exceptionObject, tb = sys.exc_info()
+            if store:
+                j.exceptionutils.store(ttype, exceptionObject, tb)
             colored_tb = self.colorizer.colorize_traceback(ttype, exceptionObject, tb)
             self._log(logging.ERROR, colored_tb, ())
+
+    def warn_tb(self, ttype, *args, store=True):
+        if self.isEnabledFor(logging.WARNING):
+            try:
+                raise ttype(*args)
+            except ttype:
+                ttype, exceptionObject, tb = sys.exc_info()
+                if store:
+                    j.exceptionutils.store(ttype, exceptionObject, tb)
+                colored_tb = self.colorizer.colorize_traceback(ttype, exceptionObject, tb)
+                self._log(logging.WARNING, colored_tb, ())
 
     def enable_only_me(self):
         """

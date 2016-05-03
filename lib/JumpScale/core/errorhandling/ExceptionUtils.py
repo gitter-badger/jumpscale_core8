@@ -59,7 +59,7 @@ class ExceptionUtils:
         @tb : can be a python data object or a Event
         """
         self.logger.error_tb(ttype, exceptionObject, tb)
-        self.store(ttype, exceptionObject, tb)
+        # self.store(ttype, exceptionObject, tb)
 
     def getFrames(self,tb=None):
 
