@@ -33,7 +33,7 @@ def action():
         result['category'] = 'AYS Process'
         if not ays.actions.check_up_local(ays, wait=False):
             message = "Process %s:%s:%s is halted" % (ays.domain, ays.name, ays.instance)
-            logger.warn_tb(j.exceptions.OPERATIONS, message)
+            logger.warn_tb(j.exceptions.OPERATIONS, message, level=2)
             result['state'] = 'HALTED'
             result['message'] = message
             result['category'] = 'AYS Process'

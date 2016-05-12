@@ -51,7 +51,7 @@ def action():
         if disk.free and disk.size:
             freepercent = (disk.free / float(disk.size)) * 100
             if checkusage and (freepercent < 10):
-                logger.warn_tb(j.exceptions.OPERATIONS, result['message'])
+                logger.warn_tb(j.exceptions.OPERATIONS, result['message'], level=2)
                 result['state'] = 'WARNING'
             if checkusage and (freepercent < 5):
                 logger.warn_tb(j.exceptions.OPERATIONS, result['message'])

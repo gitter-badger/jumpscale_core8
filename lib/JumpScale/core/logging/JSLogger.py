@@ -20,10 +20,10 @@ class JSLogger(logging.Logger):
             colored_tb = self.colorizer.colorize_traceback(ttype, exceptionObject, tb)
             self._log(logging.ERROR, colored_tb, ())
 
-    def warn_tb(self, ttype, *args, store=True):
+    def warn_tb(self, ttype, *args, store=True, **kwargs):
         if self.isEnabledFor(logging.WARNING):
             try:
-                raise ttype(*args)
+                raise ttype(*args,**kwargs)
             except ttype:
                 ttype, exceptionObject, tb = sys.exc_info()
                 if store:

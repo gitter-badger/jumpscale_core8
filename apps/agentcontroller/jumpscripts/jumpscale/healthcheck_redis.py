@@ -60,7 +60,7 @@ def action():
 
                 if (used_memory / maxmemory) * 100 > 90:
                     state = 'WARNING'
-                    logger.warn_tb(j.exceptions.OPERATIONS, result['message'])
+                    logger.warn_tb(j.exceptions.OPERATIONS, result['message'], level=2)
       
             result['state'] = state
             results.append(result)
