@@ -119,7 +119,7 @@ class PostgresClient():
 
     def restore(self,path,tables=[],schema=True):
         if not j.sal.fs.exists(path=path):
-            j.events.inputerror_critical("cannot find path %s to import from."%path)
+            raise j.exceptions.Input("cannot find path %s to import from."%path)
         args=copy.copy(self.__dict__)
         if schema:
             args["base"]=path

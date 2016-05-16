@@ -344,7 +344,7 @@ class Text:
                 try:
                     result=float(result)
                 except:
-                    j.events.inputerror_critical("Please provide float.","system.self.ask.neededfloat")
+                    raise j.exceptions.Input("Please provide float.","system.self.ask.neededfloat")
                 result=str(result)
             
             elif ttype=="int":
@@ -375,7 +375,7 @@ class Text:
                 if tags.tagExists("dropdownvals"):
                     dropdownvals=tags.tagGet("dropdownvals")
                 else:
-                    j.events.inputerror_critical("When type is dropdown in ask, then dropdownvals needs to be specified as well.")
+                    raise j.exceptions.Input("When type is dropdown in ask, then dropdownvals needs to be specified as well.")
                 choicearray=[item.strip() for item in dropdownvals.split(",")]
                 result=j.tools.console.askChoice(choicearray, descr=descr, sort=True)
             elif ttype == 'dict':
@@ -385,7 +385,7 @@ class Text:
                     result += "    %s,\n" % line.strip().strip(',')
 
             else:
-                j.events.inputerror_critical("Input type:%s is invalid (only: bool,int,str,string,dropdown,list,dict,float)"%ttype)
+                raise j.exceptions.Input("Input type:%s is invalid (only: bool,int,str,string,dropdown,list,dict,float)"%ttype)
 
             out+="%s%s\n"%(prefix,result)
 
@@ -485,7 +485,7 @@ class Text:
         elif isinstance(string,str) or isinstance(string,float) or isinstance(string,int):
             ttype,result=self._str2var(j.data.text.toStr(string))
         else:
-            j.events.inputerror_critical("Could not convert '%s' to basetype, input was %s. Expected string, dict or list."%(string, type(string)),"self.str2var")    
+            raise j.exceptions.Input("Could not convert '%s' to basetype, input was %s. Expected string, dict or list."%(string, type(string)),"self.str2var")    
         return result
 
 
@@ -532,10 +532,10 @@ class Text:
             elif isinstance(string,str) or isinstance(string,float) or isinstance(string,int):
                 ttype,result=self._str2var(j.data.text.toStr(string))
             else:
-                j.events.inputerror_critical("Could not convert '%s' to basetype, input was %s. Expected string, dict or list."%(string, type(string)),"self.str2var")    
+                raise j.exceptions.Input("Could not convert '%s' to basetype, input was %s. Expected string, dict or list."%(string, type(string)),"self.str2var")    
             return result
         except Exception as e:
-            j.events.inputerror_critical("Could not convert '%s' to basetype, error was %s"%(string,e),"self.str2var")
+            raise j.exceptions.Input("Could not convert '%s' to basetype, error was %s"%(string,e),"self.str2var")
 
     
     def eval(self,code):
@@ -841,7 +841,7 @@ class Text:
                 text=[ttype.fromString(item) for item in text]
 
             # else:
-            #     j.events.inputerror_critical("type needs to be: int,bool or float","self.getlist.type")
+            #     raise j.exceptions.Input("type needs to be: int,bool or float","self.getlist.type")
 
         
 

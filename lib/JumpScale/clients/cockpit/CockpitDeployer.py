@@ -264,8 +264,7 @@ class CockpitDeployer:
 
         #self.logger.info('cloning template repo (%s)' % self.TEMPLATE_REPO)
         _, _, _, _, template_repo_path, _ = j.do.getGitRepoArgs(self.TEMPLATE_REPO)
-        #template_repo_path = j.clients.github.getClient(url=self.TEMPLATE_REPO, executor=cuisine.executor)
-        #template_repo_path = template_repo_path.pullGitRepo(url)
+        #template_repo_path = j.do.pullGitRepo(url=self.TEMPLATE_REPO, branch='master', executor=cuisine.executor)
         #self.logger.info('cloned in %s' % template_repo_path)
 
         self.logger.info("creation of cockpit repo")
@@ -335,9 +334,7 @@ class CockpitDeployer:
             'https://github.com/Jumpscale/jumpscale_portal8.git',
         ]
         for url in repos:
-            git_client = j.clients.github.getClient("", url, executor=container_cuisine.executor)
-            git_client.pullGitRepo(url)
-
+            j.do.pullGitRepo(url=url, executor=container_cuisine.executor)
 
 
         self.logger.info("Start configuration of your cockpit")

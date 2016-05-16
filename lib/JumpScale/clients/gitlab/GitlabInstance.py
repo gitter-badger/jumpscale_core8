@@ -47,7 +47,7 @@ class GitlabInstance():
         # self.isLoggedIn = False
 
         #will be default 5 min
-        self.cache=j.db.cache.get(j.servers.kvs.getRedisStore(namespace="cache"))
+        self.cache=j.tools.cache.get(j.servers.kvs.getRedisStore(namespace="cache"))
 
     def getFile(self,group,project,path):
         """
@@ -58,7 +58,7 @@ class GitlabInstance():
 
         res=self.gitlab.getfile(project["id"],path,"master")
         if res==False:
-            j.events.inputerror_critical("cannot find file:%s in gitlab in project:%s"%(path,project))
+            raise j.exceptions.Input("cannot find file:%s in gitlab in project:%s"%(path,project))
 
         return base64.decodestring(res["content"])
 
@@ -97,7 +97,7 @@ class GitlabInstance():
         if len(items)>0:
             return items[0]
         else:
-            j.events.inputerror_critical("cannot find group:%s in gitlab"%groupname)
+            raise j.exceptions.Input("cannot find group:%s in gitlab"%groupname)
 
 
         # result=self._getFromCache(groupname)
@@ -112,7 +112,7 @@ class GitlabInstance():
         #     self.cache.set(groupname,group)
 
         # if die:
-        #     j.events.inputerror_critical("Cannot find group with name:%s"%groupname)
+        #     raise j.exceptions.Input("Cannot find group with name:%s"%groupname)
         # else:
         #     return None
 

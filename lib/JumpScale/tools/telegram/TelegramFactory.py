@@ -20,7 +20,7 @@ class TelegramFactory:
 
         if telegramkey=="":
             if "telegram" not in os.environ:
-                j.events.inputerror_critical("Cannot find env var telegram please in shell do: export telegram=1124...")
+                raise j.exceptions.Input("Cannot find env var telegram please in shell do: export telegram=1124...")
             telegramkey=os.environ["telegram"]
 
         return TelegramBot(telegramkey)

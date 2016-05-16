@@ -104,7 +104,7 @@ class Console:
             width=self.width
         maxMessageLength = width  -len(prefix) #- maxLengthStatusType
         if maxMessageLength<5:
-            j.events.inputerror_critical("Cannot format message for screen, not enough width\nwidht:%s prefixwidth:%s maxlengthstatustype:%s" % (width,len(prefix),maxMessageLength),"console")
+            raise j.exceptions.Input("Cannot format message for screen, not enough width\nwidht:%s prefixwidth:%s maxlengthstatustype:%s" % (width,len(prefix),maxMessageLength),"console")
 
         out=[]
         for line in message.split("\n"):
@@ -190,14 +190,14 @@ class Console:
             try:
                 self.echoWithPrefix(str(dictionary[key]),key,withStar,indent)
             except:
-                j.events.inputerror_critical("Could not convert item of dictionary %s to string" % key,"console.echodict")
+                raise j.exceptions.Input("Could not convert item of dictionary %s to string" % key,"console.echodict")
 
     def transformDictToMessage(self,dictionary,withStar=False,indent=None):
         for key in list(dictionary.keys()):
             try:
                 self.formatMessage(str(dictionary[key]),key,withStar,indent)
             except:
-                j.events.inputerror_critical("Could not convert item of dictionary %s to string" % key,"console.transformDictToMessage")
+                raise j.exceptions.Input("Could not convert item of dictionary %s to string" % key,"console.transformDictToMessage")
 
     def cls(self):
         """
@@ -218,7 +218,7 @@ class Console:
         @rtype: string
         """
         if j.application.interactive!=True:
-            j.events.inputerror_critical ("Cannot ask a string in a non interactive mode.","console.askstring")
+            raise j.exceptions.Input ("Cannot ask a string in a non interactive mode.","console.askstring")
         if validate and not isinstance(validate, collections.Callable):
             raise TypeError('The validate argument should be a callable')
         response = ""
@@ -254,7 +254,7 @@ class Console:
         @rtype: string
         """
         if j.application.interactive!=True:
-            j.events.inputerror_critical ("Cannot ask a password in a non interactive mode.","console.askpasswd.noninteractive")
+            raise j.exceptions.Input ("Cannot ask a password in a non interactive mode.","console.askpasswd.noninteractive")
         if validate and not isinstance(validate, collections.Callable):
             raise TypeError('The validate argument should be a callable')
         response = ""
@@ -282,7 +282,7 @@ class Console:
             if failed:
                 self.echo("Invalid password!")
                 retryCount = retryCount - 1
-        j.events.inputerror_critical(("Console.askPassword() failed: tried %s times but user didn't fill out a value that matches '%s'." % (retry, regex)),"console.askpasswd")
+        raise j.exceptions.Input(("Console.askPassword() failed: tried %s times but user didn't fill out a value that matches '%s'." % (retry, regex)),"console.askpasswd")
 
 
     def askInteger(self, question, defaultValue = None, minValue = None, maxValue = None, retry = -1, validate=None):
@@ -298,7 +298,7 @@ class Console:
         @return: integer representing the response on the question
         """
         if j.application.interactive!=True:
-            j.events.inputerror_critical ("Cannot ask an integer in a non interactive mode.")
+            raise j.exceptions.Input ("Cannot ask an integer in a non interactive mode.")
         if validate and not isinstance(validate, collections.Callable):
             raise TypeError('The validate argument should be a callable')
         if not minValue == None and not maxValue == None:
@@ -342,7 +342,7 @@ class Console:
         @rtype: bool
         '''
         if j.application.interactive!=True:
-            j.events.inputerror_critical ("Cannot ask a yes/no question in a non interactive mode.","console.askyesno.notinteractive")
+            raise j.exceptions.Input ("Cannot ask a yes/no question in a non interactive mode.","console.askyesno.notinteractive")
 
         while True:
             if sys.version.startswith("2"):
@@ -562,7 +562,7 @@ class Console:
             self.echo("Found exactly one choice: %s"%(choicearray[0]))
             return choicearray[0]
         if j.application.interactive!=True:
-            j.events.inputerror_critical ("Cannot ask a choice in an list of items in a non interactive mode.","console.askchoice.noninteractive")
+            raise j.exceptions.Input ("Cannot ask a choice in an list of items in a non interactive mode.","console.askchoice.noninteractive")
         descr = descr or "\nMake a selection please: "
 
         if sort and isinstance(choicearray, (tuple, list)):
@@ -594,7 +594,7 @@ class Console:
 
     def askChoiceMultiple(self, choicearray, descr=None, sort=True):
         if j.application.interactive!=True:
-            j.events.inputerror_critical ("Cannot ask a choice in an list of items in a non interactive mode.","console.askChoiceMultiple.notinteractive")
+            raise j.exceptions.Input ("Cannot ask a choice in an list of items in a non interactive mode.","console.askChoiceMultiple.notinteractive")
         if not choicearray:
             return []
         if len(choicearray)==1:

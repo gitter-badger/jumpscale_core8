@@ -7,7 +7,7 @@ class GitClient(object):
 
         self._repo = None
         if not j.sal.fs.exists(path=baseDir):
-            j.events.inputerror_critical("git repo on %s not found." % baseDir)
+            raise j.exceptions.Input("git repo on %s not found." % baseDir)
 
         # split path to find parts
         baseDir = baseDir.replace("\\", "/")  # NOQA
@@ -27,12 +27,12 @@ class GitClient(object):
             raise j.exceptions.RuntimeError("could not find basepath for .git in %s"%baseDir)
 
         if baseDir.find("/code/") == -1:
-            j.events.inputerror_critical(
+            raise j.exceptions.Input(
                 "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
         base = baseDir.split("/code/", 1)[1]
 
         if base.count("/") != 2:
-            j.events.inputerror_critical(
+            raise j.exceptions.Input(
                 "jumpscale code management always requires path in form of $somewhere/code/$type/$account/$reponame")
 
 
@@ -41,7 +41,7 @@ class GitClient(object):
         self.baseDir=baseDir
 
         # if len(self.repo.remotes) != 1:
-        #     j.events.inputerror_critical("git repo on %s is corrupt could not find remote url" % baseDir)
+        #     raise j.exceptions.Input("git repo on %s is corrupt could not find remote url" % baseDir)
 
     def __repr__(self):
         return str(self.__dict__)

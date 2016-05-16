@@ -90,7 +90,7 @@ class StoreFactory(object):
         from servers.key_value_store.memory_store import MemoryKeyValueStore
         return MemoryKeyValueStore(namespace)
 
-    def getRedisStore(self, namespace='',host='localhost',port=9999,db=0,password='',serializers=None,masterdb=None,changelog=True):
+    def getRedisStore(self, namespace='',host='localhost',port=6379,db=0,password='',serializers=None,masterdb=None,changelog=True):
         '''
         Gets a memory key value store.
 

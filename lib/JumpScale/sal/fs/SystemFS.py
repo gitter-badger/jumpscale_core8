@@ -216,6 +216,8 @@ class SystemFS(SALObject):
     def __init__(self):
         self.__jslocation__="j.sal.fs"
         self.logger = j.logger.get("j.sal.fs")
+        self.logger.disabled=True
+        
         self.walker = SystemFSWalker()
 
     def copyFile(self, fileFrom, to, createDirIfNeeded=False, overwriteFile=True):
@@ -1341,13 +1343,14 @@ class SystemFS(SALObject):
         # self.logger.debug('Reading file %s'% filename,9)
         with open(filename) as fp:
             data = fp.readlines()
-        uncommented = list()
-        for line in data:
-            if not line.startswith('#') and not line.startswith('\n'):
-                line = line.replace('\n', '')
-                uncommented.append(line)
-        self.logger.debug('File %s is closed after reading'%filename)
-        return uncommented
+            uncommented = list()
+            for line in data:
+                if not line.strip().startswith('#') and not line.startswith('\n'):
+                    line = line.replace('\n', '')
+                    uncommented.append(line)
+            self.logger.debug('File %s is closed after reading'%filename)
+            return uncommented
+
 
     def fileGetTextContents(self, filename):
         """Read a UTF-8 file and get contents of that file. Takes care of the [BOM](http://en.wikipedia.org/wiki/Byte_order_mark)
@@ -1356,15 +1359,16 @@ class SystemFS(SALObject):
         """
         if filename is None:
             raise TypeError('File name is None in system.fs.fileGetTextContents')
-        with open(filename) as f:
+        with open(filename, encoding='utf8') as f: #enforce utf8 encoding
             s = f.read()
 
-        boms = [codecs.BOM_UTF8]
-        for bom in boms:  # we can add more BOMs later:
-            if s.startswith(bom.decode()):
-                s = s.replace(bom.decode(), '', 1)
-                break
-        return s
+            boms = [codecs.BOM_UTF8]
+            for bom in boms:  # we can add more BOMs later:
+                if s.startswith(bom.decode()):
+                    s = s.replace(bom.decode(), '', 1)
+                    break
+            return s
+
 
     def touch(self,paths,overwrite=True):
         """
@@ -1459,15 +1463,16 @@ class SystemFS(SALObject):
         digest = hashlib.md5()
         try:
             for filepath in filename:
-                with open(filepath) as fh:
+                with open(filepath, 'rb') as fh:
                     while True:
                         buf = fh.read(4096)
-                        if buf == "":
+                        if buf == b"":
                             break
                         digest.update(buf)
             return digest.hexdigest()
         except Exception as e:
             raise j.exceptions.RuntimeError("Failed to get the hex digest of the file %sin system.fs.md5sum. Error: %s"  % (filename,str(e)))
+
 
     def getFolderMD5sum(self, folder):
         files = sorted(self.walk(folder, recurse=1))
@@ -1671,34 +1676,19 @@ class SystemFS(SALObject):
             return tempfile.mktemp('', prefix, dir)
 
     def isAsciiFile(self, filename, checksize=4096):
-        """Read the first <checksize> bytes of <filename>.
-           Validate that only valid ascii characters (32-126), \r, \t, \n are
-           present in the file"""
-        BLOCKSIZE = 4096
-        dataread = 0
-        if checksize == 0:
-            checksize = BLOCKSIZE
-        fp = open(filename,"r")
-        isAscii = True
-        while dataread < checksize:
-            data = fp.read(BLOCKSIZE)
-            if not data:
-                break
-            dataread += len(data)
-            for x in data:
-                if not ((ord(x)>=32 and ord(x)<=126) or x=='\r' or x=='\n' or x=='\t'):
-                    isAscii = False
-                    break
-            if not isAscii:
-                break
-        fp.close()
-        return isAscii
+        #TODO: let's talk about checksize feature.
+        try:
+            with open(filename, encoding='ascii') as f:
+                f.read()
+                return True
+        except UnicodeDecodeError:
+                return False
 
     def isBinaryFile(self, filename, checksize=4096):
-        return not self.isAsciiFile(filename, checksize)
+            return not self.isAsciiFile(filename, checksize)
 
     def isAbsolute(self, path):
-        return os.path.isabs(path)
+            return os.path.isabs(path)
 
     lock = staticmethod(lock)
     lock_ = staticmethod(lock_)

@@ -29,6 +29,14 @@ class GrafanaClient(object):
         self._url = url
         self.setAuth(username, password)
 
+    def ping(self):
+        url = os.path.join(self._url, 'api/org/')
+        try:
+            self._session.get(url).json()
+            return True
+        except:
+            return False
+
     def setAuth(self, username, password):
         self._username = username
         self._password = password
@@ -47,7 +55,7 @@ class GrafanaClient(object):
         return self._session.get(url).json()
 
     def isAuthenticated(self):
-        url = os.path.join(self._url, 'api/search/')
+        url = os.path.join(self._url, 'api/org/')
         return self._session.get(url).status_code != 401
 
     def delete(self, dashboard):

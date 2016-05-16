@@ -158,12 +158,12 @@ class Container(SALObject):
         for key,portsDict in self.info["NetworkSettings"]["Ports"].items():
             if key.startswith(str(port)):
                 # if "PublicPort" not in port2:
-                #     j.events.inputerror_critical("cannot find publicport for ssh?")
+                #     raise j.exceptions.Input("cannot find publicport for ssh?")
                 portsfound=[int(item['HostPort']) for item in portsDict]
                 if len(portsfound)>0:
                     return portsfound[0]
 
-        j.events.inputerror_critical("cannot find publicport for ssh?")
+        raise j.exceptions.Input("cannot find publicport for ssh?")
 
     def pushSSHKey(self, keyname="", sshpubkey="", local=True):
         keys = set()
@@ -243,7 +243,7 @@ class Container(SALObject):
 
         """
         if not self.cuisine.core.file_exists(source):
-            j.events.inputerror_critical(msg="%s not found in container" % source)
+            raise j.exceptions.Input(msg="%s not found in container" % source)
         ddir = j.sal.fs.getDirName(dest)
         j.sal.fs.createDir(ddir)
         content = self.cuisine.core.file_read(source)

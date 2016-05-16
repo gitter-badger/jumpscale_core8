@@ -303,7 +303,7 @@ class SyncthingClient:
                 self.logger.warn("retry API CALL %s" % url)
                 time.sleep(0.2)
 
-        if r.ok is False:
+        if ok is False or r.ok is False:
             self.logger.error("%s"%(url))
             self.logger.error(endpoint)
             self.logger.error(request_body)

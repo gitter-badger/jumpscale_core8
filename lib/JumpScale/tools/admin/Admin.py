@@ -34,7 +34,7 @@ class Admin():
             start1up=start
             start=j.sal.fs.getParent(start)
             if start.strip("/")=="":
-                j.events.inputerror_critical("Cannot find git root directory from %s"%j.sal.fs.getcwd())
+                raise j.exceptions.Input("Cannot find git root directory from %s"%j.sal.fs.getcwd())
 
         self.root=start
         self.name=j.sal.fs.getDirName("%s/"%start1up,lastOnly=True)

@@ -8,6 +8,7 @@ class HRDFactory:
     def __init__(self):
         self.__jslocation__="j.data.hrd"
         self.logger = j.logger.get("j.data.hrd")
+        self.logger.disabled=True
 
     def getSchema(self,path=None,content=""):
         return HRDSchema(path=path,content=content)
@@ -20,7 +21,7 @@ class HRDFactory:
             templates=[]
         if path is not None and j.sal.fs.isDir(path):
             if content!="":
-                j.events.inputerror_critical("HRD of directory cannot be build with as input content (should be empty)")
+                raise j.exceptions.Input("HRD of directory cannot be build with as input content (should be empty)")
             return HRDTree(path,prefixWithName=prefixWithName,keepformat=keepformat)
         else:
             return HRD(path=path,content=content,prefixWithName=prefixWithName,keepformat=keepformat,args=args,templates=templates)

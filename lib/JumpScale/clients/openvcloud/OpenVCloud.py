@@ -82,7 +82,7 @@ class Openvcloud(object):
         print("[+] creating git repository")
 
         if gitlaburl.find("@")!=-1:
-            j.events.inputerror_critical('[-] do not use "login:passwd@" in the url')
+            raise j.exceptions.Input('[-] do not use "login:passwd@" in the url')
 
         if not gitlaburl.startswith("http"):
             gitlaburl = "https://%s" % gitlaburl
@@ -102,7 +102,7 @@ class Openvcloud(object):
         print("[+] get secret key for cloud api")
 
         if self._spacesecret is None:
-            j.events.inputerror_critical('[-] no spacesecret set, need to call connect() method first')
+            raise j.exceptions.Input('[-] no spacesecret set, need to call connect() method first')
         else:
             spacesecret = self._spacesecret
 
@@ -114,7 +114,7 @@ class Openvcloud(object):
             j.sal.ubuntu.sshkeys_generate()
 
         if len(recoverypasswd) < 6:
-            j.events.inputerror_critical("[-] recovery passwd needs to be at least 6 chars")
+            raise j.exceptions.Input("[-] recovery passwd needs to be at least 6 chars")
 
         if self.actionCheck(gitlaburl, "machinecreate") is False:
             # create ovc_git vm
@@ -288,7 +288,7 @@ metadata.openvcloud            =
         print("[+] creating git repository")
 
         if gitlaburl.find("@")!=-1:
-            j.events.inputerror_critical('[-] do not use "login:passwd@" in the url')
+            raise j.exceptions.Input('[-] do not use "login:passwd@" in the url')
 
         if not gitlaburl.startswith("http"):
             gitlaburl = "https://%s" % gitlaburl
@@ -306,7 +306,7 @@ metadata.openvcloud            =
 
         print("get secret key for cloud api")
         if self._spacesecret is None:
-            j.events.inputerror_critical('no spacesecret set, need to call connect() method first')
+            raise j.exceptions.Input('no spacesecret set, need to call connect() method first')
         else:
             spacesecret = self._spacesecret
 

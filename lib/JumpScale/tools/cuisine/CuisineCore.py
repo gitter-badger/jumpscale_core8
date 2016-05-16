@@ -639,11 +639,32 @@ class CuisineCore():
         else:
             self.file_write(location,"",mode=mode,owner=owner,group=group)
 
+    def _file_stream(self, input, output):
+        while True:
+            piece = input.read(131072)
+            if not piece:
+                break
+            
+            output.write(piece)
+        
+        output.close()
+        input.close()
+        
+    def file_upload_binary(self, local, remote):
+        """Uploads (stream) the local file to the remote location"""
+        local = self.args_replace(local)
 
+        sftp = self.executor.sshclient.getSFTP()
+        
+        output = sftp.open(remote, mode='w+')
+        input = open(local, "rb")
+        
+        self._file_stream(input, output)
+        
     def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
         exists or the content are different."""
-        local=self.args_replace(local)
+        local = self.args_replace(local)
         remote_md5 = self.file_md5(remote)
         local_md5 = j.data.hash.md5(local)
         if remote_md5 == local_md5:
@@ -654,7 +675,17 @@ class CuisineCore():
         with ftp.open(remote, mode='w+') as f:
             f.write(content)
 
+    def file_download_binary(self, local, remote):
+        """Downloads (stream) the remote file to the local location"""
+        local = self.args_replace(local)
 
+        sftp = self.executor.sshclient.getSFTP()
+        
+        output = open(local, "w+b")
+        input = sftp.open(remote, mode='r')
+        
+        self._file_stream(input, output)
+    
     def file_download_local(self,remote, local):
         """Downloads the remote file to localy only if the local location does not
         exists or the content are different."""
@@ -1146,6 +1177,28 @@ class CuisineCore():
         self.file_write(path,script)
         out=self.run("jspython %s"%path)
         self.file_unlink(path)
+        return out
+    
+    @actionrun(action=True,force=True)
+    def execute_python(self, script):
+        """
+        execute a python script (script as content) in a remote tmux command, the stdout will be returned
+        """
+        script = self.args_replace(script)
+        script = j.data.text.strip(script)
+        
+        path = "$tmpDir/pyscript_temp_%s.py" % j.data.idgenerator.generateRandomInt(1,10000)
+        path = self.args_replace(path)
+
+        # saving locally, uploading, removing locally
+        j.sal.fs.writeFile(path, script)
+        self.file_upload_binary(path, path)
+        j.sal.fs.remove(path)
+        
+        out = self.run("python %s" % path)
+        
+        self.file_unlink(path)
+        
         return out
 
 

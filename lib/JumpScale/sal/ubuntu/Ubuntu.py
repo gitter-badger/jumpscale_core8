@@ -289,14 +289,13 @@ stop on runlevel [016]
         path.write_text("deb %s\n" % url)
 
 
-    @property
     def whoami(self):
         rc,result=self._local.execute("whoami")
         return result.strip()
 
     def checkroot(self):
         if self.whoami() != "root":
-            j.events.inputerror_critical("only support root")
+            raise j.exceptions.Input("only support root")
 
     def sshkeys_generate(self, passphrase='', type="rsa", overwrite=False, path="/root/.ssh/id_rsa"):
         path = j.tools.path.get(path)
@@ -304,7 +303,7 @@ stop on runlevel [016]
             path.rmtree_p()
         if not path.exists():
             if type not in ['rsa', 'dsa']:
-                j.events.inputerror_critical("only support rsa or dsa for now")
+                raise j.exceptions.Input("only support rsa or dsa for now")
             cmd = "ssh-keygen -t %s -b 4096 -P '%s' -f %s" % (type, passphrase, path)
             self._local.execute(cmd)
 

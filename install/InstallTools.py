@@ -1007,7 +1007,7 @@ class InstallTools():
         s.quit()
 
     def execute(self, command , showout=True, outputStderr=True, useShell=True, log=True, cwd=None, timeout=0, errors=[], \
-                        ok=[], captureout=True, die=True, async=False):
+                        ok=[], captureout=True, die=True, async=False, executor=None):
         """
         @param errors is array of statements if found then exit as error
         return rc,out
@@ -1015,6 +1015,8 @@ class InstallTools():
 
         # print "EXEC:"
         # print command
+        if executor:
+            return executor.execute(command, die=die, checkok=False, async=async,  showout=True, combinestdr=outputStderr, timeout=timeout)
         os.environ["PYTHONUNBUFFERED"]="1"
         ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -1319,13 +1321,15 @@ class InstallTools():
             self._whoami=result.strip()
         return self._whoami
 
-    def addSSHAgentToBashrc(self,path=None):
+    def addSSHAgentToBashProfile(self,path=None):
         if path==None:
             if "root"==self.whoami():
-                self.addSSHAgentToBashrc(path="/root/.bashrc")
-            path=self.joinPaths(os.environ["HOME"],".bashrc")
+                if not self.exists('/root/.bash_profile'):
+                    self.execute('touch /root/.bash_profile')
+                return self.addSSHAgentToBashProfile(path="/root/.bash_profile")
+            path=self.joinPaths(os.environ["HOME"],".bash_profile")
             self.createDir(path)
-            self.addSSHAgentToBashrc(path=path)
+            self.addSSHAgentToBashProfile(path=path)
         else:
             content=self.readFile(path)
             out=""
@@ -1337,13 +1341,14 @@ class InstallTools():
 
                 out+="%s\n"%line
 
-            out+="\n#js 'j.do.loadSSHAgent()' #JSSSHAGENT\n"
-            socketpath="%s/sshagent_socket"%path.replace("/.bashrc","")
+            out+="\njs 'j.do.loadSSHAgent()' #JSSSHAGENT\n"
+            socketpath="%s/sshagent_socket"%path.replace("/.bash_profile","")
             # out+="export SSH_AUTH_SOCK=%s \n"%socketpath
             out+="if [ -v $SSH_AUTH_SOCK ]; then export SSH_AUTH_SOCK=%s ; fi\n"%socketpath
             out=out.replace("\n\n\n","\n\n")
             out=out.replace("\n\n\n","\n\n")
             self.writeFile(path,out)
+
 
     def _initSSH_ENV(self,force=False):
         if force or "SSH_AUTH_SOCK" not in os.environ:
@@ -1358,32 +1363,30 @@ class InstallTools():
         socketpath="%s/sshagent_socket"%os.environ["HOME"]
         return socketpath
 
-    def loadSSHKeys(self,path=None,duration=36000):
+    def loadSSHKeys(self,path=None,duration=3600*24,die=False):
         """
-        @param loadedkeys this is to win time, it represents the already loaded keys
         """
         # print "loadsshkeys"
 
 
         if path!=None:
 
-            rc,out = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
-            if rc>1:
-                print(out)
-                print(err)
-                raise RuntimeError("cannot find keys in ssh-agent, did not find ssh-agent")
+            if "SSH_AUTH_SOCK" not in os.environ:
+                self._initSSH_ENV(True)
 
-            existingkeys=[item.split(" ")[2] for item in out.split("\n") if item.strip()!=""]
+            keysloaded=self.listSSHKeyFromAgent(keyIncluded=True)
 
-            if path in existingkeys:
-                return
+            keycontent=self.readFile(path+".pub")
 
-            #specific path so load
-            self._initSSH_ENV()
-            #timeout after 10 h
+            for path0,inmemcontent in keysloaded:
+                if keycontent.find(inmemcontent)!=-1:
+                    #means key is already loaded
+                    return
+
+            #timeout after 24 h
             print("load sshkey: %s"%path)
             cmd="ssh-add -t %s %s "%(duration,path)
-            print(cmd)
+            # print(cmd)
             # rc,result,err=self.execute(cmd,die=False,showout=False, outputStderr=False)
             self.executeInteractive(cmd)
             # if rc>0:
@@ -1395,11 +1398,22 @@ class InstallTools():
             else:
                 path=self.joinPaths(os.environ["HOME"],".ssh")
 
-            for keypath in self.listFilesInDir(path):
-                keypath=self.getBaseName(keypath)
-                if keypath.lower() in ["config"] or keypath.startswith("authorized") or keypath.lower().endswith(".pub") or keypath.lower().startswith("known_hosts"):
-                    continue
-                self.loadSSHKeys(self.joinPaths(path,keypath))
+            keys=self.listFilesInDir(path,filter="*.pub")
+
+            if len(keys)>4:
+                if die:
+                    raise RuntimeError("Found too many sshkeys in dir:%s"%path)
+                else:
+                    print("WARNING could not load SSH keys, there were more than 4 in %s"%path)
+                    return
+
+            keysloaded=self.listSSHKeyFromAgent()
+            for keypath in keys:
+                keypath=keypath[:-4]
+                if keypath not in keysloaded:
+                    self.loadSSHKeys(keypath)
+                # else:
+                #     print("SSHKEY no need to load:%s"%keypath)
 
 
     def getSSHKeyPathFromAgent(self,keyname,die=True):
@@ -1410,7 +1424,7 @@ class InstallTools():
             return None
 
         for line in out.splitlines():
-            delim = (".ssh/%s" % keyname).encode()
+            delim = ("/%s" % keyname).encode()
 
             if line.endswith(delim):
                 line=line.strip()
@@ -1421,7 +1435,7 @@ class InstallTools():
                         keypath="keys/%s"%keyname
                     else:
                         raise RuntimeError("could not find keypath:%s"%keypath)
-                return keypath
+                return keypath.decode()
         if die:
             raise RuntimeError("Did not find key with name:%s, check its loaded in ssh-agent with ssh-add -l"%keyname)
         return None
@@ -1444,13 +1458,22 @@ class InstallTools():
         return None
 
 
-    def listSSHKeyFromAgent(self):
+    def listSSHKeyFromAgent(self,keyIncluded=False):
+        """
+        returns list of paths
+        """
+        if "SSH_AUTH_SOCK" not in os.environ:
+            self._initSSH_ENV(True)        
         cmd = "ssh-add -L"
-        rc, out  = self.execute(cmd)
+        rc, out  = self.execute(cmd,False,False,die=False)
         if rc!=0:
+            if rc==1 and out.find("The agent has no identities")!=-1:
+                return []            
             raise RuntimeError("error during listing of keys :%s" % err)
-            return []
-        return out.splitlines()
+        if keyIncluded:
+            return [(item.split(" ")[2],item.split(" ")[1]) for item in out.splitlines()]
+        else:
+            return [item.split(" ")[2] for item in out.splitlines()]
 
     def authorizeSSHKey(self,remoteipaddr,keyname=None,login="root",passwd=None,sshport=22,removeothers=False,keypathpub=None,allow_agent=True):
         """
@@ -1544,7 +1567,7 @@ class InstallTools():
             else:
                 print("ssh key was already authorized")
 
-    def loadSSHAgent(self,path=None,createkeys=False,keyname="id_rsa"):
+    def loadSSHAgent(self,path=None,createkeys=False,keyname="id_rsa",killfirst=False):
         """
         check if ssh-agent is available & there is key loaded
 
@@ -1553,7 +1576,27 @@ class InstallTools():
         the primary key is 'id_rsa' and will be used as default e.g. if authorizing another node then this key will be used
 
         """
-        print("load ssh agent")
+        #check if more than 1 agent
+        res=[item for item in self.execute("ps aux|grep ssh-agent",False,False)[1].split("\n") if item.find("grep ssh-agent")==-1]
+        res=[item for item in res if item.strip()!=""]
+        res=[item for item in res if item[-2:]!="-l"]
+        
+        if len(res)>1:
+            print ("more than 1 ssh-agent, will kill all")
+            killfirst=True
+        if len(res)==1 and res[0].find("sshagent_socket")==-1:
+            #means not right agent was loaded
+            killfirst=True
+            print ("ssh-agent is not using sshagent_socket")
+
+        if killfirst:
+            cmd="killall ssh-agent"
+            # print(cmd)
+            self.execute(cmd,showout=False, outputStderr=False,die=False)
+            #remove previous socketpath
+            self.delete(self._getSSHSocketpath())
+            self.delete(self.joinPaths(self.TMP,"ssh-agent-pid"))
+
         if path==None:
             path2=self.joinPaths(os.environ["HOME"],".ssh",keyname)
             if not self.exists(path2):
@@ -1563,14 +1606,13 @@ class InstallTools():
         else:
             if not self.exists(path):
                 raise RuntimeError("Cannot find ssh key on %s"%path)
-        #key is now in path
-        #1 lets try if we can get ssh-agent and if we should start
-
 
         if not self.exists(self._getSSHSocketpath()):
             socketpath=self._getSSHSocketpath()
             #ssh-agent not loaded
+            print("load ssh agent")
             rc,result = self.execute("ssh-agent -a %s"%socketpath,die=False,showout=False, outputStderr=False)
+
             if rc>0:
                 #could not start ssh-agent
                 raise RuntimeError("Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n"%(result,err))
@@ -1579,7 +1621,7 @@ class InstallTools():
                 if not self.exists(socketpath):
                     raise RuntimeError("Serious bug, ssh-agent not started while there was no error, should never get here")
                 piditems=[item for item in result.split("\n") if item.find("pid")!=-1]
-                print(piditems)
+                # print(piditems)
                 if len(piditems)<1:
                     print("results was:")
                     print(result)
@@ -1587,36 +1629,38 @@ class InstallTools():
                     raise RuntimeError("Cannot find items in ssh-add -l")
                 pid=int(piditems[-1].split(" ")[-1].strip("; "))
                 self.writeFile(self.joinPaths(self.TMP,"ssh-agent-pid"),str(pid))
-                self.addSSHAgentToBashrc()
-                return self.loadSSHAgent(path=path,createkeys=createkeys)
-        else:
-            #ssh agent should be loaded because ssh-agent socket has been found
-            # pid=int(self.readFile(self.joinPaths(self.TMP,"ssh-agent-pid")))
-            if "SSH_AUTH_SOCK" not in os.environ:
-                self._initSSH_ENV(True)
-            rc,result = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
-            if rc==2:#>0 and err.find("not open a connection")!=-1:
-                #no ssh-agent found\
-                print(result)
-                print(err)
-                raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
-            elif rc==1:
-                #no keys but agent loaded
-                result=""
-            elif rc>0:
-                raise RuntimeError("Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n"%(result,err))
+                self.addSSHAgentToBashProfile()
 
-        self.loadSSHKeys(path=path)
+                self.loadSSHKeys(path=path)
+
+
+        #ssh agent should be loaded because ssh-agent socket has been found
+        # pid=int(self.readFile(self.joinPaths(self.TMP,"ssh-agent-pid")))
+        if "SSH_AUTH_SOCK" not in os.environ:
+            self._initSSH_ENV(True)
+        rc,result = self.execute("ssh-add -l",die=False,showout=False, outputStderr=False)
+        if rc==2:#>0 and err.find("not open a connection")!=-1:
+            #no ssh-agent found\
+            print(result)
+            print(err)
+            raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
+        elif rc==1:
+            #no keys but agent loaded
+            result=""
+        elif rc>0:
+            raise RuntimeError("Could not start ssh-agent, something went wrong,\nstdout:%s\nstderr:%s\n"%(result,err))
 
 
     def checkSSHAgentAvailable(self):
+        if "SSH_AUTH_SOCK" not in os.environ:
+            self._initSSH_ENV(True)
         rc,out = self.execute("ssh-add -l",showout=False, outputStderr=False,die=False)
         if rc!=0:
             return False
         else:
             return True
 
-    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto",codeDir=None):
+    def getGitRepoArgs(self, url="", dest=None, login=None, passwd=None, reset=False,branch=None,ssh="auto",codeDir=None, executor=None):
         """
         Extracts and returns data useful in cloning a Git repository.
 
@@ -1677,10 +1721,11 @@ class InstallTools():
         repository_type = repository_host.split('.')[0] if '.' in repository_host else repository_host
 
         if not dest:
-            if codeDir == None:
-                codeDir = self.CODEDIR
-
-
+            if codeDir is None:
+                if not executor:
+                    codeDir = self.CODEDIR
+                else:
+                    codeDir = executor.cuisine.core.dir_paths['codeDir']
             dest = '%(codedir)s/%(type)s/%(account)s/%(repo_name)s' % {
                 'codedir': codeDir,
                 'type': repository_type.lower(),
@@ -1695,7 +1740,7 @@ class InstallTools():
 
         return repository_host, repository_type, repository_account, repository_name, dest, repository_url
 
-    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto", codeDir=None):
+    def pullGitRepo(self,url="",dest=None,login=None,passwd=None,depth=1,ignorelocalchanges=False,reset=False,branch=None,revision=None, ssh="auto",executor=None,codeDir=None):
         """
         will clone or update repo
         if dest == None then clone underneath: /opt/code/$type/$account/$repo
@@ -1704,41 +1749,42 @@ class InstallTools():
         @param ssh ==True means will checkout ssh
         @param ssh =="first" means will checkout sss first if that does not work will go to http
         """
-
         if ssh=="first":
             try:
-                return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, True)
-            except Exception as e:
-                return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, False)
+                return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, True,executor)
+            except Exception:
+                return self.pullGitRepo(url,dest,login,passwd,depth,ignorelocalchanges,reset,branch,revision, False,executor)
             raise RuntimeError("Could not checkout, needs to be with ssh or without.")
 
-        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=codeDir)
+        base,provider,account,repo,dest,url=self.getGitRepoArgs(url,dest,login,passwd,reset=reset, ssh=ssh,codeDir=codeDir,executor=executor)
+
+        exists = self.exists(dest) if not executor else executor.exists(dest)
 
         if dest is None and branch is None:
             branch = "master"
-        elif branch is None and dest is not None and self.exists(dest):
+        elif branch is None and dest is not None and exists:
             # if we don't specify the branch, try to find the currently checkedout branch
-            if self.exists(dest):
-                cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
-                rc, out = self.execute(cmd, die=False, showout=False)
-                if rc == 0:
-                    branch = out.strip()
-                else:  # if we can't retreive current branch, use master as default
-                    branch = 'master'
-            else:
+            cmd = 'cd %s; git rev-parse --abbrev-ref HEAD' % dest
+            rc, out = self.execute(cmd, die=False, showout=False, executor=executor)
+            if rc == 0:
+                branch = out.strip()
+            else:  # if we can't retreive current branch, use master as default
                 branch = 'master'
+        else:
+            branch = branch
 
-        checkdir="%s/.git"%(dest)
-        if self.exists(checkdir):
+        checkdir = "%s/.git" % (dest)
+        exists = self.exists(checkdir) if not executor else executor.exists(checkdir)
+        if exists:
             if ignorelocalchanges:
-                print(("git pull, ignore changes %s -> %s"%(url,dest)))
+                print(("git pull, ignore changes %s -> %s"%(url, dest)))
                 cmd="cd %s;git fetch"%dest
                 if depth!=None:
                     cmd+=" --depth %s"%depth
-                self.execute(cmd)
+                    self.execute(cmd, executor=executor)
                 if branch!=None:
                     print("reset branch to:%s"%branch)
-                    self.execute("cd %s;git reset --hard origin/%s"%(dest,branch),timeout=600)
+                    self.execute("cd %s;git reset --hard origin/%s" % (dest, branch), timeout=600, executor=executor)
             else:
                 #pull
                 print(("git pull %s -> %s"%(url,dest)))
@@ -1753,11 +1799,11 @@ class InstallTools():
                         cmd="cd %s;git pull origin %s"%(dest,branch)
                     else:
                         cmd="cd %s;git pull"%dest
-                self.execute(cmd,timeout=600)
+                self.execute(cmd, timeout=600, executor=executor)
         else:
             print(("git clone %s -> %s"%(url,dest)))
             extra = ""
-            if depth and depth != 0:
+            if depth :
                  extra = "--depth=%s" % depth
             if url.find("http")!=-1:
                 if branch!=None:
@@ -1772,14 +1818,12 @@ class InstallTools():
 
             print(cmd)
 
-            if depth!=None:
-                cmd+=" --depth %s"%depth
-            self.execute(cmd,timeout=600)
+            self.execute(cmd, timeout=600, executor=executor)
 
         if revision!=None:
             cmd="cd %s;git checkout %s"%(dest,revision)
             print(cmd)
-            self.execute(cmd,timeout=600)
+            self.execute(cmd, timeout=600, executor=executor)
 
         return dest
 
@@ -2092,12 +2136,10 @@ class Installer():
             do.symlink(src, dest2)
 
         src="%s/github/jumpscale/jumpscale_core8/shellcmds"%do.CODEDIR
-        desttest="/usr/local/bin/js8"
-        # if insystem or not self.exists(desttest):
-        #     dest="/usr/local/bin"
-        #     do.symlinkFilesInDir(src, dest)
-        do.symlink("%s/js" % src, "/usr/local/bin/js8")
-        do.symlink("%s/ays" % src, "/usr/local/bin/ays8")
+        desttest="/usr/local/bin/js"
+        if insystem or not self.exists(desttest):
+            dest="/usr/local/bin"
+            do.symlinkFilesInDir(src, dest)
 
         dest="%s/bin"%base
         do.symlinkFilesInDir(src, dest)
@@ -2344,18 +2386,17 @@ exec python3 -q "$@"
         # C2=C2.format(base=basedir, env=envfile)
         if self.readonly==False or die==True:
 
-            do.delete("/usr/bin/jspython8")#to remove link
-            # do.delete("%s/bin/jspython"%basedir)
-            do.delete("/usr/local/bin/jspython8")
-            # do.writeFile()
+            do.delete("/usr/bin/jspython")#to remove link
+            do.delete("%s/bin/jspython"%basedir)
+            do.delete("/usr/local/bin/jspython")
 
-            dest="%s/bin/jspython"%basedir
-            C2 = C2.replace('$base', basedir)
-            do.writeFile(dest,C2)
-            do.chmod(dest,0o770)
-            if insystem:
+            if not insystem:
+                dest="%s/bin/jspython"%basedir
+                C2 = C2.replace('$base', basedir)
+                do.writeFile(dest,C2)
+            else:
                 #in system
-                dest="/usr/local/bin/jspython8"
+                dest="/usr/local/bin/jspython"
                 do.writeFile(dest,C2_insystem)
             do.chmod(dest, 0o770)
 
@@ -2391,8 +2432,8 @@ exec python3 -q "$@"
             pip uninstall JumpScale-core
             # killall tmux  #dangerous
             killall redis-server
-            #rm /usr/local/bin/js*
-            #rm /usr/local/bin/ays*
+            rm /usr/local/bin/js*
+            rm /usr/local/bin/ays*
             rm -rf $base/lib/JumpScale
             rm -rf /opt/sentry/
             sudo stop redisac
@@ -2617,8 +2658,8 @@ exec python3 -q "$@"
         # [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".dist-info")!=-1]
         [do.delete(item) for item in do.listDirsInDir(do.getPythonLibSystem()) if item.find(".egg")!=-1]
 
-        # do.execute("rm -rf %s/pip*"%do.getPythonLibSystem())
-        # do.execute("rm -rf %s/pip*"%do.getBinDirSystem())
+        do.execute("rm -rf %s/pip*"%do.getPythonLibSystem())
+        do.execute("rm -rf %s/pip*"%do.getBinDirSystem())
 
         # do.pullGitRepo("https://github.com/pypa/pip")
         # do.execute("cd %s;python3 setup.py install"%do.getGitRepoArgs("https://github.com/pypa/pip")[4])

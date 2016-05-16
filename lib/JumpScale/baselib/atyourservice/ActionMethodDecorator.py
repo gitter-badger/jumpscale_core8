@@ -42,22 +42,36 @@ class ActionMethodDecorator(object):
                 args=args[1:]
 
                 action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=False,stdOutput=True,\
-                    errorOutput=True,retry=0,executeNow=False,selfGeneratorCode=cm,force=force,actionshow=actionshow)
+                    errorOutput=True,retry=0,executeNow=False,selfGeneratorCode=cm,force=True,actionshow=actionshow)
 
                 service=action0.selfobj.service
+                
+                if force:
+                    service.state.set(action0.name,"DO")
+
                 stateitem=service.state.getSet(action0.name)
 
                 method_hash=service.recipe.actionmethods[action0.name].hash
                 hrd_hash=service.hrdhash
 
-                if stateitem.hrd_hash!=hrd_hash or stateitem.actionmethod_hash!=method_hash:
+                if stateitem.hrd_hash!=hrd_hash:
+                    stateitem.state="CHANGEDHRD"                    
+                    service.save()
+                    service.actions.change(stateitem)
+
+                if stateitem.actionmethod_hash!=method_hash:
                     stateitem.state="CHANGED"
+                    service.save()
+                    service.actions.change(stateitem)
+
+                if stateitem.name == 'init':
+                    stateitem.state = "CHANGED"
 
                 if stateitem.state=="OK":
                     print ("NOTHING TODO OK: %s"%stateitem)
                     action0.state="OK"
                     action0.save()
-                    return
+                    return action0.result
 
                 if stateitem.state=="DISABLED":
                     print ("NOTHING TODO DISABLED: %s"%stateitem)
@@ -71,8 +85,8 @@ class ActionMethodDecorator(object):
                 stateitem.last=j.data.time.epoch
                 
                 if action0.state=="OK":
-                    stateitem.hrd_hash=hrd_hash
-                    stateitem.actionmethod_hash=method_hash
+                    stateitem.hrd_hash=service.hrdhash
+                    stateitem.actionmethod_hash=service.recipe.actionmethods[action0.name].hash
                 else:
                     if "die" in kwargs:
                         if kwargs["die"]==False:

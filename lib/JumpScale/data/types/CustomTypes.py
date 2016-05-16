@@ -43,7 +43,6 @@ class Email(String):
         self.NAME = 'email'
         self._RE = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 
-
     def check(self,value):
         '''
         Check whether provided value is a valid tel nr
@@ -75,7 +74,7 @@ class Email(String):
     def get_default(self):
         return "changeme@example.com"
 
-class Path(Email):
+class Path(String):
     '''Generic path type'''
     def __init__(self):
         Email.__init__(self)
@@ -85,7 +84,7 @@ class Path(Email):
     def get_default():
         return ""
 
-class Tel(Email):
+class Tel(String):
     """
     format is e.g. +32 475.99.99.99x123
     only requirement is it needs to start with +
@@ -113,7 +112,7 @@ class Tel(Email):
         return "+32 475.99.99.99"
 
 
-class IPRange(Email):
+class IPRange(String):
     """
     """
     def __init__(self):
@@ -124,7 +123,7 @@ class IPRange(Email):
     def get_default(self):
         return "192.168.1.1/24"
 
-class IPAddress(Email):
+class IPAddress(String):
     """
     """
     def __init__(self):
@@ -161,10 +160,16 @@ class Date(String):
     -1 is indefinite in past
     0 is now
     +1 is indefinite in future
+    +1d will be converted to 1 day from now, 1 can be any int
+    +1w will be converted to 1 week from now, 1 can be any int
+    +1w_end will be converted to 1 week from now at end of week (Saturday), 1 can be any int
+    +1m_end will be converted to 1 week from now at end of month (last day of month), 1 can be any int
     '''
     def __init__(self):
         self.NAME = 'date'
         self._RE = re.compile('[0-9]{2}/[0-9]{2}/[0-9]{4}')
+        self._RE_days = re.compile('^\+\dd')
+        self._RE_weeks = re.compile('^\+\dw')
 
     def get_default(self):
         return "-1"
@@ -176,7 +181,7 @@ class Date(String):
         if not j.data.types.string.check(value):
             return False
         value=self.clean(value)
-        if value in ["-1","+1","0"]:
+        if value in ["-1","+1","0",""]:
             return True
         return self._RE.fullmatch(value) is not None
 
@@ -193,10 +198,19 @@ class Date(String):
             v=="0"
         elif not j.data.types.string.check(v):
             raise ValueError("Input needs to be string:%s"%v)
+        elif self._RE_days.fullmatch(value) is not None:
+            from IPython import embed
+            print ("DEBUG NOW day extra")
+            embed()
+        elif self._RE_weeks.fullmatch(value) is not None:
+            from IPython import embed
+            print ("DEBUG NOW week extra")
+            embed()
+            
         return v
 
 
-class Duration(Email):
+class Duration(String):
     '''
     Duration type
 

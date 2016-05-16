@@ -28,14 +28,18 @@ class String():
         else:
             raise ValueError("Could not convert to string:%s"%v)
 
-
     def check(self,value):
         '''Check whether provided value is a string'''
         return isinstance(value, str)
 
-
     def get_default(self):
         return ""
+
+    def clean(self,value):
+        """
+        used to change the value to a predefined standard for this type
+        """
+        return value
 
 class Bytes():
     '''Generic array of bytes type'''
@@ -65,6 +69,11 @@ class Bytes():
     def get_default(self):
         return ""
 
+    def clean(self,value):
+        """
+        used to change the value to a predefined standard for this type
+        """
+        return value
 
 
 class Boolean():
@@ -110,6 +119,12 @@ class Boolean():
     def get_default(self):
         return True
 
+    def clean(self,value):
+        """
+        used to change the value to a predefined standard for this type
+        """
+        return value
+
 
 class Integer():
 
@@ -141,6 +156,13 @@ class Integer():
 
     def get_default(self):
         return 0
+
+    def clean(self,value):
+        """
+        used to change the value to a predefined standard for this type
+        """
+        return value
+
 
 
 class Float():
@@ -177,3 +199,10 @@ class Float():
 
     def get_default(self):
         return 0.0
+
+    def clean(self,value):
+        """
+        used to change the value to a predefined standard for this type
+        """
+        return value
+        

@@ -1,11 +1,11 @@
-
-
 from JumpScale import j
 
 # import JumpScale.baselib.actions
 
 from ServiceTemplate import ServiceTemplate
+
 from Service import Service, loadmodule
+from inspect import getmembers, isfunction, isclass, getsource
 
 class ActionMethod():
 
@@ -79,20 +79,22 @@ class ServiceRecipe(ServiceTemplate):
 
 
 
-    def _checkdef(self, actionmethod, content, property=False):
-        if not property:
-            a = ActionMethod(self, actionmethod, content)
-            self.actionmethods[actionmethod] = a
-            if actionmethod == 'input':
-                self._out += '\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n\n'
-            elif actionmethod == 'getExecutor':
-                self._out += content
-            elif content:
-                self._out += '\n    @actionmethod()\n%s' % (content)
-            else:
-                self._out += "\n    @actionmethod()\n    def %s(self):\n        return True\n\n" % actionmethod
-        else:
+    def _checkdef(self, actionmethod, content, decorator=True):
+        content=content.replace("def action_","def ")
+        a = ActionMethod(self, actionmethod, content)
+        self.actionmethods[actionmethod] = a
+        if actionmethod == "input" or actionmethod == "change":
+            decorator=False
+        if actionmethod == 'input' and content=="":
+            self._out += '\n    def input(self,name,role,instance,serviceargs):\n        return serviceargs\n\n'
+        elif actionmethod == 'change' and content=="":
+            self._out += '\n    def change(self,stateitem):\n        return True\n\n'
+        elif not decorator and content:
             self._out += content
+        elif content:
+            self._out += '\n    @actionmethod()\n%s' % (content)
+        else:
+            self._out += "\n    @actionmethod()\n    def %s(self):\n        return True\n\n" % actionmethod
 
     def _copyActions(self):
         self._out = """
@@ -104,20 +106,28 @@ class ServiceRecipe(ServiceTemplate):
                 self.selfobjCode="service=j.atyourservice.getService(role='$(service.role)', instance='$(service.instance)', die=True);selfobj=service.actions;selfobj.service=service"
         class Actions():
         """
+        actionmethodsRequired = ["input", "init", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
+                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata","change"]
+
         self._out = j.data.text.strip(self._out)
 
         if j.sal.fs.exists(self.template.path_actions):
-            from inspect import getmembers, isfunction, isclass, getsource
             actions = loadmodule('temp.actions', self.template.path_actions)
             classes_list = [cls for cls in getmembers(actions) if isclass(cls[1])]
             if classes_list:
-                [self._checkdef(func[0], getsource(func[1])) for func in getmembers(classes_list[0][1]) if isfunction(func[1])]
+                for func in getmembers(classes_list[0][1]):
+                    methodName=func[0]
+                    if isfunction(func[1]):
+                        decorator = True if methodName in actionmethodsRequired else False
+                        if methodName.startswith("action"):
+                            decorator=True
+                            methodName=methodName[6:].strip("_")    
+                                                                            
+                        self._checkdef(methodName, getsource(func[1]), decorator)
+
+                # [self._checkdef(func[0], getsource(func[1])) for func in getmembers(classes_list[0][1]) if isfunction(func[1])]
                 #self._checkdef(prop[0], getsource(prop[1]), property=True)
                 # props = [prop for prop in getmembers(classes_list[0][1]) if isinstance(prop[1], property)]
-                # TODO add properties
-
-        actionmethodsRequired = ["input", "hrd", "install", "stop", "start", "monitor", "halt", "check_up", "check_down",
-                                 "check_requirements", "cleanup", "data_export", "data_import", "uninstall", "removedata"]
 
         for method in actionmethodsRequired:
             if method not in self.actionmethods:
@@ -134,32 +144,31 @@ class ServiceRecipe(ServiceTemplate):
 
         instance = instance.lower()
 
-        service = j.atyourservice.getService(role=self.role, instance=instance,die=False)
+        service = j.atyourservice.getService(role=self.role, instance=instance, die=False)
 
-
-        if service!=None:
+        if service is not None:
             print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
             service.args.update(args or {})  # needed to get the new args in
             service._recipe = self
             service.init()
 
         else:
-            shortkey = "%s!%s" % (self.role, instance)
+            key = "%s!%s" % (self.role, instance)
 
             if path:
                 fullpath = path
             elif parent is not None:
-                fullpath = j.sal.fs.joinPaths(parent.path, shortkey)
+                fullpath = j.sal.fs.joinPaths(parent.path, key)
             else:
                 ppath = j.sal.fs.joinPaths(j.atyourservice.basepath, "services")
-                fullpath = j.sal.fs.joinPaths(ppath, shortkey)
+                fullpath = j.sal.fs.joinPaths(ppath, key)
 
             if j.sal.fs.isDir(fullpath):
-                j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath), category="ays.servicetemplate")
+                j.events.opserror_critical(msg='Service with same role ("%s") and of same instance ("%s") is already installed.\nPlease remove dir:%s it could be this is broken install.' % (self.role, instance, fullpath))
 
             service = Service(self, instance=instance, args=args, path=fullpath, parent=parent, originator=originator)
 
-            j.atyourservice._services[service.shortkey]=service
+            j.atyourservice._services[service.key]=service
 
             if not j.sal.fs.exists(self.template.path_hrd_schema):
                 service.init(yaml=yaml)
@@ -239,7 +248,8 @@ class ServiceRecipe(ServiceTemplate):
                     items += j.sal.fs.listDirsInDir(
                         path=src, recursive=False, dirNameOnly=False, findDirectorySymlinks=False)
 
-                items = [(item, "%s/%s" % (dest, j.sal.fs.getshortkey(item)), link)
+                raise RuntimeError("getshort_key does not even exist")
+                items = [(item, "%s/%s" % (dest, j.sal.fs.getshort_key(item)), link)
                          for item in items]
             else:
                 items = [(src, dest, link)]

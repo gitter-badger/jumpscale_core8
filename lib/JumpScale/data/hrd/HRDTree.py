@@ -35,7 +35,7 @@ class HRDTree(HRDBase):
 
     def getHrd(self,key):
         if key not in self.items:
-            j.events.inputerror_critical("Cannot find key:'%s' in tree"%key,"hrdtree.gethrd.notfound")
+            raise j.exceptions.Input("Cannot find key:'%s' in tree"%key,"hrdtree.gethrd.notfound")
         return self.items[key].hrd
 
     def set(self,key,val,persistent=True):
@@ -49,7 +49,7 @@ class HRDTree(HRDBase):
     def get(self,key,default=None,):
         if key not in self.items:
             if default==None:
-                j.events.inputerror_critical("Cannot find value with key %s in tree %s."%(key,self.path),"hrd.get.notexist")
+                raise j.exceptions.Input("Cannot find value with key %s in tree %s."%(key,self.path),"hrd.get.notexist")
             val=default
         else:
             val= self.items[key].get()

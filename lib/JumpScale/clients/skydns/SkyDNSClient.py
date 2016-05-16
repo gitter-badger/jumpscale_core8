@@ -29,15 +29,21 @@ class SkyDNSClient():
             auth_header = "Basic " + j.data.serializer.base64.dumps(base)
             self._session.headers = {"Authorization": auth_header}
 
+    def _replyParser(self, r):
+        if r.status_code == 401:
+            return {"error": "not authorized"}
+        
+        if r.status_code == 404:
+            return {"error": "endpoint not found"}
+        
+        return r.json()
+        
     def read(self, endpoint):
         link = self.mkurl(endpoint)
 
         r = self._session.get(link)
 
-        if r.status_code == 401:
-            return {"error": "not authorized"}
-
-        return r.json()
+        return self._replyParser(r)
 
     def write(self, endpoint, data):
         link = self.mkurl(endpoint)
@@ -45,20 +51,14 @@ class SkyDNSClient():
         payload = {'value': j.data.serializer.json.dumps(data)}
         r = self._session.put(link, data=payload)
 
-        if r.status_code == 401:
-            return {"error": "not authorized"}
-
-        return r.json()
+        return self._replyParser(r)
 
     def delete(self, endpoint):
         link = self.mkurl(endpoint)
 
         r = self._session.delete(link)
 
-        if r.status_code == 401:
-            return {"error": "not authorized"}
-
-        return r.json()
+        return self._replyParser(r)
 
     def mkurl(self, endpoint, complement=''):
         return '%s%s' % (self.baseurl, endpoint)
@@ -82,6 +82,16 @@ class SkyDNSClient():
         self.write(key, {'host': target, 'priority': priority, 'ttl': ttl})
         return self.read(key)
 
+    def setRecordMX(self, name, target, priority=20, ttl=3600):
+        key = self._hostKey(name)
+        self.write(key, {'host': target, 'priority': priority, 'ttl': ttl, 'mail': True})
+        return self.read(key)
+    
+    def setRecordTXT(self, name, content, ttl=3600):
+        key = self._hostKey(name)
+        self.write(key, {'text': content, 'ttl': ttl})
+        return self.read(key)
+        
     def removeRecordA(self, name):
         key = self._hostKey(name)
         self.delete(key)

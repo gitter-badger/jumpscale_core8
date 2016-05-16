@@ -4,6 +4,9 @@ from JumpScale import j
 class BaseJSException(Exception):
 
     def __init__(self, message="", level=1, source="", actionkey="", eco=None, tags="", msgpub=""):
+        if j.data.types.string.check(level):
+            level=1
+            tags="cat:%s"%level
         super().__init__(message)
         j.errorconditionhandler.setExceptHook()
         self.message = message
@@ -62,7 +65,7 @@ class Input(BaseJSException):
     def __init__(self, message="", level=1, source="", actionkey="", eco=None, tags="", msgpub=""):
         super().__init__(message, level, source, actionkey, eco, tags, msgpub)
         self.type = "input.error"
-        self.codetrace = False
+        self.codetrace = True
 
 
 class BUG(BaseJSException):

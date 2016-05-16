@@ -85,6 +85,7 @@ class Action:
             self.selfGeneratorCode=selfGeneratorCode
 
             self.args = args
+            self.imports = kwargs.pop("imports", [])
             self.kwargs= kwargs
 
             self.serviceObj = serviceObj
@@ -296,8 +297,8 @@ class Action:
     @property
     def sourceToExecute(self):
         s="""
+        $imports
         from JumpScale import j
-
         args=\"\"\"
         $args
         \"\"\"
@@ -316,6 +317,7 @@ class Action:
 
         """
         s=j.data.text.strip(s)
+        s = s.replace("$imports", '\n'.join(self.imports))
         args=j.data.serializer.json.dumps(self.args,sort_keys=True, indent=True)
         kwargs=j.data.serializer.json.dumps(self.kwargs,sort_keys=True, indent=True)
         s=s.replace("$args",args)
@@ -513,6 +515,9 @@ class Action:
         if self._stdOutput == False:
             j.tools.console.hideOutput()
 
+        if self.force:
+            self.state="NEW"
+
         if j.actions.showonly==False:
             rcode = 0
             output = ""
@@ -520,7 +525,7 @@ class Action:
             ok=False
             err = ''
 
-            while self.state!="ERROR" and ok==False and counter<self.retry+1:
+            while self.state != "ERROR" and ok==False and counter<self.retry+1:
 
                 try:
                     if self.selfobj!="**NOTHING**":

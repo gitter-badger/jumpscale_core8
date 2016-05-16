@@ -109,7 +109,7 @@ class SQLAlchemyFactory(object):
     def validate_email(self,target, value, oldvalue, initiator):
         value=value.lower().strip()
         if value.find("@")==-1:
-            j.events.inputerror_critical("Property error, email not formatted well, needs @.Val:%s\nObj:\n%s"%(value,target))
+            raise j.exceptions.Input("Property error, email not formatted well, needs @.Val:%s\nObj:\n%s"%(value,target))
         return value            
 
 class SQLAlchemy(object):

@@ -161,7 +161,7 @@ class HRDItem():
                     if item == "":
                         continue
                     if item.find(":") == -1:
-                        j.events.inputerror_critical("In %s/%s: cannot parse:'%s', need to find : to parse dict"%(self.hrd.name,self.name,item))
+                        raise j.exceptions.Input("In %s/%s: cannot parse:'%s', need to find : to parse dict"%(self.hrd.name,self.name,item))
                     key,post2=item.split(":",1)
                     currentobj[key.strip()]=j.data.text.machinetext2val(post2.strip())
                 self.value=currentobj
@@ -243,7 +243,7 @@ class HRD(HRDBase):
                 if True or j.application.debug:
                     raise j.exceptions.RuntimeError(msg)
                 else:
-                    j.events.inputerror_critical(msg)
+                    raise j.exceptions.Input(msg)
             else:
                 return default
         val= self.items[key].get(ask=ask)

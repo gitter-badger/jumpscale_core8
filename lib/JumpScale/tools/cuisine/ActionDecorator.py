@@ -40,6 +40,14 @@ class ActionDecorator(object):
             # force=True
 
             if action:
+                func_file = func.__code__.co_filename
+                imports = list()
+                with open(func_file, 'r') as f:
+                    lines = f.readlines()
+                for line in lines:
+                    if (line.startswith("from ") and " import " in line) or line.startswith("import "):
+                        imports.append(line)
+                kwargs["imports"] = imports
                 args=args[1:]
                 cm=cm.replace("$id",cuisine.core.id)  #replace the code which has the constructor code for the selfobj to work on
                 j.actions.setRunId(cuisine.core.runid)

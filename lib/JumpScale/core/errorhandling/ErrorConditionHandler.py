@@ -358,7 +358,7 @@ class ErrorConditionHandler():
         for f,linenr in frs:
             try:
                 code,linenr2=inspect.findsource(f)
-            except IOError:
+            except Exception:
                 continue
             start=max(linenr-10,0)
             stop=min(linenr+4,len(code))

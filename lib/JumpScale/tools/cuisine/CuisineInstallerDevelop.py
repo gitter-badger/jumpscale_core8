@@ -94,6 +94,7 @@ class CuisineInstallerDevelop():
         self.cuisine.core.run_script(C)
 
         C="""
+        cffi==1.5.2
         paramiko
 
         msgpack-python
@@ -142,6 +143,7 @@ class CuisineInstallerDevelop():
         ujson
         watchdog
         pygo
+        pygithub
         minio
 
         # colorlog
@@ -155,6 +157,7 @@ class CuisineInstallerDevelop():
         traitlets
         python-telegram-bot
         colorlog
+        path.py
         """
         self.cuisine.pip.multiInstall(C,upgrade=True)
 
@@ -167,6 +170,8 @@ class CuisineInstallerDevelop():
 
     @actionrun(action=True)
     def jumpscale8(self):
+        if self.cuisine.installer.jumpscale_installed():
+            return
         self.installJS8Deps()
 
         if self.cuisine.core.isUbuntu or self.cuisine.core.isArch:

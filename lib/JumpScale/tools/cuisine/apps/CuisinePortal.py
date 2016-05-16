@@ -42,6 +42,10 @@ class CuisinePortal(object):
         make sure new env arguments are understood on platform
         """
         deps = """
+<<<<<<< HEAD
+=======
+        cffi==1.5.2
+>>>>>>> master
         setuptools
         aioredis
         # argh
@@ -210,7 +214,7 @@ class CuisinePortal(object):
             raise j.exceptions.RuntimeError("Cannot find:%s, to convert to python 3" % path)
         self.cuisine.core.run("2to3-3.5 -f all -w %s" % path)
 
-    @actionrun(action=True)
+    @actionrun(action=True, force=True)
     def start(self, passwd=None):
         """
         Start the portal
@@ -233,6 +237,10 @@ class CuisinePortal(object):
 
         if passwd is not None:
             self.set_admin_password(passwd)
+
+    @actionrun(action=True, force=True)
+    def stop(self):
+        self.cuisine.processmanager.stop('portal')
 
     def set_admin_password(self, passwd):
         # wait for the admin user to be created by portal

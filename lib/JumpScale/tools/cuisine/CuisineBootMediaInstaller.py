@@ -28,7 +28,7 @@ class CuisineBootMediaInstaller(object):
             self.cuisine.core.file_unlink(downloadpath)
 
         if not self.cuisine.core.file_exists(downloadpath):
-            self.cuisine.core.run("cd $tmpDir;curl %s -O" % url)
+            self.cuisine.core.run("cd $tmpDir;curl -L %s -O" % url)
 
         return base
 
@@ -50,7 +50,8 @@ class CuisineBootMediaInstaller(object):
 
 
     def _install(self, base):
-        self.cuisine.core.run("cd $tmpDir && tar vxf %s -C /mnt/root" % base)
+        # We use bsdtar to support pi2 arm images.
+        self.cuisine.core.run("cd $tmpDir && bsdtar -vxpf %s -C /mnt/root" % base)
         self.cuisine.core.run("sync")
         self.cuisine.core.run("echo 'PermitRootLogin=yes'>>'/mnt/root/etc/ssh/sshd_config'")
 
@@ -124,6 +125,23 @@ class CuisineBootMediaInstaller(object):
     def arch(self, deviceid=None):
         url = "http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz"
         self.formatCardDeployImage(url, deviceid=deviceid)
+
+    def g8os_arm(self, url, gid, nid, deviceid=None):
+        init_tmpl = """\
+        #!/usr/bin/bash
+
+        mkdir /dev/pts
+        mount -t devpts none /dev/pts
+        source /etc/profile
+        exec /sbin/core -gid {gid} -nid {nid} -roles g8os > /var/log/core.log 2>&1
+        """
+
+        def configure(deviceid):
+            import textwrap
+            init = textwrap.dedent(init_tmpl).format(gid=gid, nid=nid)
+            self.cuisine.core.file_write("/mnt/sbin/init", init, mode=755)
+
+        self.formatCardDeployImage(url, deviceid=deviceid, part_type='msdos', post_install=configure)
 
     def g8os(self, url, gid, nid, deviceid=None):
         fstab_tmpl = """\

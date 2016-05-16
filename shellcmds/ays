@@ -14,14 +14,14 @@ def cli(nodebug):
     j.atyourservice.debug = not nodebug
 
 @click.command()
-@click.argument('role')
+@click.argument('name')
 @click.argument('instance')
 @click.option('--count', default=1, help='number of instances you want to create, default is 1')
 @click.option('--domain', default="", help='optional domain of ays')
 @click.option('--version', default="", help='optional version of ays')
-def new(role,instance,count=1,domain="",version=""):
+def new(name,instance,count=1,domain="",version=""):
     """
-    @arg role: name of role of instance you want to create
+    @arg name: name of ays template to use
     @arg instance: the name for the instance
     """
     from ptpython.repl import embed
@@ -31,24 +31,18 @@ def new(role,instance,count=1,domain="",version=""):
     click.echo('new')
 
 @click.command()
-def init():
+@click.option('--role', default="", help='optional role for ays instances to init')
+@click.option('--instance', default="", help='optional name of instance')
+def init(role="",instance=""):
     """
     as first step this command will look for blueprints (they are in your ays repo under path $aysdir/blueprints)
     they will be processed in sorted order
     the blueprints will be converted to ays instances
     the changes with before (last time you did an init) will be shown
+
     """
-    j.atyourservice.init()
+    j.atyourservice.init(role=role,instance=instance)
 
-    #@question why do we need this (despiegk)
-    # path = j.sal.fs.joinPaths(j.dirs.varDir, 'servicetrees', '%s.json' % j.sal.fs.getcwd().replace('/', '__'))
-    # j.sal.fs.touch(path)
-    # servicestree = j.atyourservice.servicesTree
-    # j.data.serializer.json.dump(path, servicestree)
-
-    # chfiles.sort()
-    # for item in chfiles:
-    #     print ("- %s"%item)
 
 #@click.command()
 #@click.argument('servicekey')
@@ -84,34 +78,41 @@ def apply(printonly=False, all=False, ask=False):
 
 @click.command()
 @click.argument('action')
+@click.option('--role', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', default="", help='optional name of instance')
 @click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
-@click.option('--all', default=False,  is_flag=True,help='don\'t look for changed services, execute on all')
+@click.option('--force', default=False,  is_flag=True,help='force execution even if no change')
 @click.option('--ask', default=False,  is_flag=True,help='ask on which service to execute the action')
-def do(action,printonly=False,all=False, ask=False):
+@click.option('--ignorestate', default=False,  is_flag=True,help='if True then state will not be remembered')
+def do(action,role="",instance="",printonly=False, ask=False,ignorestate=False,force=False):
     """
     call an action
     """
     allservices=all
-    j.atyourservice.do(action,printonly=printonly,allservices=allservices, ask=ask)
+    j.atyourservice.do(action,role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
+
 
 @click.command()
-@click.argument('action')
-@click.option('--changesonly', default=False,  is_flag=True,help='only execute on ays with changes since last time')
-@click.option('--remember', default=False,  is_flag=True,help='remember the 1 time run in the alog, default false')
-def do0(action,remember=False,changesonly=False):
+@click.option('--role', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', default="", help='optional name of instance')
+@click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
+@click.option('--force', default=False,  is_flag=True,help='force execution even if no change')
+@click.option('--ask', default=False,  is_flag=True,help='ask on which service to execute the action')
+@click.option('--ignorestate', default=False,  is_flag=True,help='if True then state will not be remembered')
+def install(role="",instance="",printonly=False,all=False, ask=False,ignorestate=False,force=False):
     """
-    call an action but don't remember the consequences
+    make it reality
+    if you want more finegrained controle please use the do cmd
     """
-    allservices=not changesonly
-    j.atyourservice.do(action,remember=remember,allservices=allservices)
+    j.atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
 
 @click.command()
 @click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
-def install(printonly=False):
+def uninstall(printonly=False):
     """
-    make it reality
+    do uninstall
     """
-    j.atyourservice.install(printonly=printonly)
+    j.atyourservice.uninstall(printonly=printonly)
 
 
 @click.command()
@@ -161,7 +162,8 @@ def destroy():
     """
     reset in current ays repo all services & recipe's
     """
-    j.atyourservice.destroy()
+    j.actions.resetAll()
+    j.atyourservice.destroy(False)
     
 @click.command()
 @click.argument('debug')
@@ -183,8 +185,8 @@ cli.add_command(destroy)
 cli.add_command(init)
 cli.add_command(apply)
 cli.add_command(install)
+cli.add_command(uninstall)
 cli.add_command(do)
-cli.add_command(do0)
 cli.add_command(showproducers)
 cli.add_command(showparents)
 cli.add_command(showactions)

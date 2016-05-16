@@ -53,7 +53,7 @@ class CuisineBuilder(object):
         self.cuisine.core.file_link("%s/github/jumpscale/jumpscale_portal8/lib/portal" % self.cuisine.core.dir_paths["codeDir"], "%s/portal" % self.cuisine.core.dir_paths['jsLibDir'])
 
         # start sandboxing
-        cmd = "j.tools.cuisine.local.apps.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (stor_addr, python)
+        cmd = "j.tools.cuisine.local.builder.dedupe(['/opt'], 'js8_opt', '%s', sandbox_python=%s)" % (stor_addr, python)
         self.cuisine.core.run('js "%s"' % cmd)
         url_opt = '%s/static/js8_opt.flist' % stor_addr
 

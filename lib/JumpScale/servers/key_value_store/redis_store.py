@@ -11,7 +11,7 @@ def chunks(l, n):
 class RedisKeyValueStore(KeyValueStoreBase):
     osis = dict()
 
-    def __init__(self,namespace="",host='localhost',port=7771,db=0,password='', serializers=[],masterdb=None, changelog=True):
+    def __init__(self,namespace="",host='localhost',port=6379,db=0,password='', serializers=[],masterdb=None, changelog=True):
 
         self.redisclient=j.clients.redis.get(host, port,password=password)
         self.redisclient.port=port

@@ -62,9 +62,9 @@ class Controller():
             self.start()
 
     def start(self):
-        import re
         import hashlib
-        import time
+        from xml.etree import ElementTree
+
         self.cuisine.core.dir_ensure("$cfgDir/controller/")
         self.cuisine.core.file_copy("$tmplsDir/cfg/controller", "$cfgDir/", recursive=True)
 
@@ -83,38 +83,48 @@ class Controller():
         self.cuisine.core.file_write('$cfgDir/controller/agentcontroller.toml', C, replaceArgs=True)
 
         # expose syncthing and get api key
-        sync_cfg = self.cuisine.core.file_read("$tmplsDir/cfg/syncthing/config.xml")
-        sync_conn = re.search(r'<address>([0-9.]+):([0-9]+)</', sync_cfg)
-        apikey = re.search(r'<apikey>([\w\-]+)</apikey>', sync_cfg).group(1)
-        sync_cfg = sync_cfg.replace(sync_conn.group(1), "0.0.0.0")
-        sync_cfg = sync_cfg.replace(sync_conn.group(2), "18384")
-        self.cuisine.core.file_write("$cfgDir/syncthing/config.xml", sync_cfg)
+        sync_cfg = ElementTree.fromstring(self.cuisine.core.file_read("$tmplsDir/cfg/syncthing/config.xml"))
+        sync_id = sync_cfg.find('device').get('id')
 
-        # add jumpscripts file
-        self.cuisine.apps.syncthing.start()
+        #set address
+        sync_cfg.find("./gui/address").text = '127.0.0.1:18384'
 
-        if not self.cuisine.core.executor.type == 'local':
-            synccl = j.clients.syncthing.get(addr=self.executor.addr, sshport=self.executor.port, port=18384, apikey=apikey)
-        else:
-            synccl = j.clients.syncthing.get(addr="localhost", port=18384, apikey=apikey)
-
+        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(sync_id.encode()).hexdigest()
         jumpscripts_path = self.cuisine.core.args_replace("$cfgDir/controller/jumpscripts")
-        timeout = 60
-        start = time.time()
-        syn_id = None
-        while time.time() < (start + timeout) and syn_id is None:
-            try:
-                syn_id = synccl.id_get()
-            except RuntimeError:
-                print("restablishing connection to syncthing")
 
-        if syn_id is None:
-            raise RuntimeError('Syncthing is not responding. Exiting.')
+        #find folder element
+        configured = False
+        for folder in sync_cfg.findall('folder'):
+            if folder.get('id') == jumpscripts_id:
+                configured = True
+                break
 
-        jumpscripts_id = "jumpscripts-%s" % hashlib.md5(syn_id.encode()).hexdigest()
-        synccl.config_add_folder(jumpscripts_id, jumpscripts_path)
+        if not configured:
+            folder = ElementTree.SubElement(sync_cfg, 'folder', {
+                'id': jumpscripts_id,
+                'path': jumpscripts_path,
+                'ro': 'true',
+                'rescanIntervalS': '60',
+                'ignorePerms': 'false',
+                'autoNormalize': 'false'
+            })
+
+            ElementTree.SubElement(folder, 'device', {'id': sync_id})
+            ElementTree.SubElement(folder, 'minDiskFreePct').text = '1'
+            ElementTree.SubElement(folder, 'versioning')
+            ElementTree.SubElement(folder, 'copiers').text = '0'
+            ElementTree.SubElement(folder, 'pullers').text = '0'
+            ElementTree.SubElement(folder, 'hashers').text = '0'
+            ElementTree.SubElement(folder, 'order').text = 'random'
+            ElementTree.SubElement(folder, 'ignoreDelete').text = 'false'
+
+        dump = ElementTree.tostring(sync_cfg, 'unicode')
+        j.logger.log("SYNCTHING CONFIG", level=10)
+        j.logger.log(dump, level=10)
+        self.cuisine.core.file_write("$cfgDir/syncthing/config.xml", dump)
 
         # start
+        self.cuisine.apps.syncthing.start()
         self.cuisine.apps.mongodb.start()
         self.cuisine.apps.redis.start()
         env = {}

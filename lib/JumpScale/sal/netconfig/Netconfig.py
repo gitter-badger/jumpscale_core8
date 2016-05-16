@@ -220,7 +220,7 @@ class Netconfig(SALObject):
         j.sal.netconfig.reset(True)
 
         if ipaddr==None or gw == None:
-            j.events.inputerror_critical("Cannot configure network when ipaddr or gw not specified","net.config")
+            raise j.exceptions.Input("Cannot configure network when ipaddr or gw not specified","net.config")
 
         if pynetlinux.brctl.findbridge("brpub")!=None:
             print("found brpub, will try to bring down.")

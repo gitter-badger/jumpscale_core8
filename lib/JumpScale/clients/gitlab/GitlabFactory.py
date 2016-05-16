@@ -37,7 +37,7 @@ class GitlabFactory:
         """
         if login =="":
             if not gitlaburl.find("@"):
-                j.events.inputerror_critical("login not specified, expect an @ in url")
+                raise j.exceptions.Input("login not specified, expect an @ in url")
             data=gitlaburl.split("@")[0]
             if data.find("http")==0:
                 data=data.split("//")[1]

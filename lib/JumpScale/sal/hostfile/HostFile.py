@@ -1,21 +1,23 @@
-
-
 # import time
 # import socket
-# import re
+import re
 
 from JumpScale import j
 
-from sal.base.SALObject import SALObject
-
-class HostFile(SALObject):
-
-    def __init___(self):
+class HostFileFactory:
+    def __init__(self):
         self.__jslocation__ = "j.sal.hostsfile"
         self.logger = j.logger.get("j.sal.hostsfile")
+
+    def get(self):
+        return HostFile()
+
+class HostFile:
+
+    def __init__(self):
         self.hostfilePath="/etc/hosts"
 
-    def remove(self, hostsfile, ip):
+    def remove(self, ip):
         """Update a hostfile, delete ip from hostsfile
         @param hostsfile: File where hosts are defined
         @param ip: Ip of the machine to remove
@@ -49,7 +51,7 @@ class HostFile(SALObject):
         @return: List of machinehostnames
         """
 
-        if self.hostExists( ip):
+        if self.existsIP( ip):
             filecontents = j.sal.fs.fileGetContents(self.hostfilePath)
             searchObj = re.search('^%s\s.*\n' %ip, filecontents, re.MULTILINE)
             hostnames = searchObj.group(0).strip().split()

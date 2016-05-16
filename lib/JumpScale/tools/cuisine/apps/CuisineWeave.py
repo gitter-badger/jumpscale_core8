@@ -36,6 +36,7 @@ class Weave():
         curl -L git.io/weave -o {binPath} && sudo chmod a+x {binPath}
         '''.format(binPath=binPath)
         C = self.cuisine.core.args_replace(C)
+        self.cuisine.docker.install()
         self.cuisine.package.ensure('curl')
         self.cuisine.core.run_script(C, profile=True)
         self.cuisine.bash.addPath(j.sal.fs.getParent(binPath), action=True)

@@ -6,6 +6,9 @@ import time
 import io
 import socket
 
+import threading
+import queue
+
 
 class SSHClientFactory(object):
 
@@ -84,7 +87,7 @@ class SSHClient(object):
         self.passwd = passwd
         self.stdout = stdout
         self._connection_ok = None
-        if passwd != None:
+        if passwd is not None:
             self.forward_agent = False
             self.allow_agent = False
             self.look_for_keys = False
@@ -198,32 +201,110 @@ class SSHClient(object):
         run cmd & return
         return: (retcode,out_err)
         """
-        buff = ''
-        retcode = 0
-
         ch = self.transport.open_session()
 
         if self.forward_agent:
             paramiko.agent.AgentRequestHandler(ch)
 
+        class StreamReader(threading.Thread):
+
+            def __init__(self, stream, queue, flag):
+                super(StreamReader, self).__init__()
+                self.stream = stream
+                self.queue = queue
+                self.flag = flag
+                self._stopped = False
+                self.setDaemon(True)
+
+            def run(self):
+                """
+                read until all buffers are empty and retrun code is ready
+                """
+                while not self.stream.closed and not self._stopped:
+                    buf = ''
+                    buf = self.stream.readline()
+                    if len(buf) > 0:
+                        self.queue.put((self.flag, buf))
+                    elif not ch.exit_status_ready():
+                        continue
+                    elif self.flag == 'O' and ch.recv_ready():
+                        continue
+                    elif self.flag == 'E' and ch.recv_stderr_ready():
+                        continue
+                    else:
+                        break
+                self.queue.put(('T', self.flag))
+
+        # execute the command on the remote server
         ch.exec_command(cmd)
+        # indicate that we're not going to write to that channel anymore
+        ch.shutdown_write()
+        # create file like object for stdout and stderr to read output of command
         stdout = ch.makefile('r')
-        for line in stdout:
-            buff += line
-            if self.stdout and showout:
-                self.logger.info(line)
+        stderr = ch.makefile_stderr('r')
+
+        # Start stream reader thread that will read strout and strerr
+        inp = queue.Queue()
+        outReader = StreamReader(stdout, inp, 'O')
+        errReader = StreamReader(stderr, inp, 'E')
+        outReader.start()
+        errReader.start()
+
+        err = ""  # error buffer
+        out = ""  # stdout buffer
+        out_eof = False
+        err_eof = False
+
+        while out_eof is False or err_eof is False:
+            try:
+                chan, line = inp.get(block=True, timeout=1.0)
+                if chan == 'T':
+                    if line == 'O':
+                        out_eof = True
+                    elif line == 'E':
+                        err_eof = True
+                    continue
+                if chan == 'O':
+                    if showout:
+                        print((line.strip()))
+                    out += line
+                elif chan == 'E':
+                    if showout:
+                        print((line.strip()))
+                    err += line
+            except queue.Empty:
+                pass
+
+        # stop the StreamReader and wait for the thread to finish
+        outReader._stopped = True
+        errReader._stopped = True
+        outReader.join()
+        errReader.join()
+
+        # indicate that we're not going to read from this channel anymore
+        ch.shutdown_read()
+        # close the channel
+        ch.close()
+
+        # close all the pseudofiles
+        stdout.close()
+        stderr.close()
 
         retcode = ch.recv_exit_status()
+
+        # can happend that some command only output on stderr but we still want to retreive the output.
+        # if return code is valid we use stderr as output value
+        if retcode == 0 and out == '' and len(err) > 0:
+            out = err
+
         if retcode > 0:
-            stderr = ch.makefile_stderr('r')
-            errors = stderr.readlines()
-            errors = ''.join(errors)
             if die:
-                raise j.exceptions.RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, buff, errors))
+                raise j.exceptions.RuntimeError("Cannot execute (ssh):\n%s\noutput:\n%serrors:\n%s" % (cmd, out, err))
             else:
-                self.logger.error(errors)
-                buff = errors
-        return (retcode, buff)
+                self.logger.error(err)
+                out = err
+
+        return (retcode, out)
 
     def close(self):
         self.client.close()

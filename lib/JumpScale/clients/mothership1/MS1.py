@@ -208,7 +208,7 @@ class MS1(object):
         if sshkey:
             if j.sal.fs.exists(path=sshkey):
                 if sshkey.find(".pub") == -1:
-                    j.events.inputerror_critical("public key path needs to have .pub at the end.")
+                    raise j.exceptions.Input("public key path needs to have .pub at the end.")
                 sshkey = j.sal.fs.fileGetContents(sshkey)
 
         api = self.getApiConnection(spacesecret)
@@ -216,7 +216,7 @@ class MS1(object):
         images = self.listImages(spacesecret)
 
         if imagename not in list(images.keys()):
-            j.events.inputerror_critical("Imagename '%s' not in available images: '%s'" % (imagename, images))
+            raise j.exceptions.Input("Imagename '%s' not in available images: '%s'" % (imagename, images))
 
         sizes = self.getMachineSizes(spacesecret, cloudspace_id)
         ssdsizes = {s: size['id'] for size in sizes for s in size['disks']}
@@ -232,7 +232,7 @@ class MS1(object):
             ssdsize = int(ssdsize)
 
         if not ssdsize:
-            j.events.inputerror_critical("No supported size found")
+            raise j.exceptions.Input("No supported size found")
 
         try:
             memsize = int(memsize)
@@ -271,12 +271,12 @@ class MS1(object):
                     if m['status'] != 'DESTROYED':
                         names.append(m['name'])
                 if name in names:
-                    j.events.inputerror_critical("Could not create machine it does already exist.","ms1.createmachine.exists")
+                    raise j.exceptions.Input("Could not create machine it does already exist.","ms1.createmachine.exists")
 
                     return False
                 cloudspaceObj = api.cloudapi.cloudspaces.get(cloudspaceId=cloudspace_id)
                 if cloudspaceObj['status'] not in ['DEPLOYED', 'VIRTUAL']:
-                    j.events.inputerror_critical("Could not create machine it does already exist.","ms1.createmachine.exists")
+                    raise j.exceptions.Input("Could not create machine it does already exist.","ms1.createmachine.exists")
                     return False
                 return True
 
@@ -291,7 +291,7 @@ class MS1(object):
                     sizeId=size_id, imageId=templateid, disksize=int(ssdsize), datadisks=datadisks)
             except Exception as e:
                 if str(e).find("Selected name already exists") != -1:
-                   j.events.inputerror_critical("Could not create machine it does already exist.","ms1.createmachine.exists")
+                   raise j.exceptions.Input("Could not create machine it does already exist.","ms1.createmachine.exists")
                 raise j.exceptions.RuntimeError("E:Could not create machine, unknown error : %s", e.response.content)
 
         self.vars["machine.id"] = machine_id
@@ -444,12 +444,12 @@ class MS1(object):
         """
         types = ['B', 'D', 'T']
         if type not in types:
-            j.events.inputerror_critical('type should be one of these : %s' ', '.join(types))
+            raise j.exceptions.Input('type should be one of these : %s' ', '.join(types))
 
         if int(size) > 2000:
-            j.events.inputerror_critical('max size is 2000 GB')
+            raise j.exceptions.Input('max size is 2000 GB')
         if int(size) < 1:
-            j.events.inputerror_critical('min size is 1 GB')
+            raise j.exceptions.Input('min size is 1 GB')
 
         api, machine_id, cloudspace_id = self._getMachineApiActorId(spaceSecret, vmName)
 

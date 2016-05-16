@@ -78,9 +78,10 @@ class ExecutorSSH(ExecutorBase):
 
         return self._sshclient
 
-    def execute(self, cmds, die=True,checkok=None,showout=True, combinestdr=True,timeout=0, env={}):
+    def execute(self, cmds, die=True,checkok=None, async=False, showout=True, combinestdr=True,timeout=0, env={}):
         """
         @param naked means will not manipulate cmd's to show output in different way
+        @param async is not used method, but is only used for interface comaptibility
         return (rc,out,err)
         """
         if env:

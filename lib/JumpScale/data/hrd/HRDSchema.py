@@ -74,11 +74,11 @@ class HRDType():
                     result=False
             elif ttype=="multichoice":
                 if self.multichoice==[]:
-                    j.events.inputerror_critical("When type is multichoice in ask, then multichoice needs to be specified as well.")
+                    raise j.exceptions.Input("When type is multichoice in ask, then multichoice needs to be specified as well.")
                 result=j.tools.console.askChoiceMultiple(self.multichoice, descr=descr, sort=True)
             elif ttype=="singlechoice":
                 if self.singlechoice==[]:
-                    j.events.inputerror_critical("When type is singlechoice in ask, then singlechoice needs to be specified as well.")
+                    raise j.exceptions.Input("When type is singlechoice in ask, then singlechoice needs to be specified as well.")
                 result=j.tools.console.askChoice(self.singlechoice, descr=descr, sort=True)
 
             elif ttype == 'dict':
@@ -86,7 +86,7 @@ class HRDType():
                 result = j.tools.console.askMultiline(question=descr)
                 result=self.typeclass.fromString(result)
             else:
-                j.events.inputerror_critical("Input type:%s is invalid (only: bool,int,str,string,dropdown,list,dict,float)"%ttype)
+                raise j.exceptions.Input("Input type:%s is invalid (only: bool,int,str,string,dropdown,list,dict,float)"%ttype)
         return result
 
 
@@ -101,7 +101,7 @@ class HRDSchema():
         if path!=None:
             content=j.sal.fs.fileGetContents(path)
         # if content=="":
-            # j.events.inputerror_critical("Content needs to be provided if path is empty")
+            # raise j.exceptions.Input("Content needs to be provided if path is empty")
         self.path=path
         self.content=content
         self.items={}
@@ -169,10 +169,8 @@ class HRDSchema():
                 try:
                     hrdtype.default=hrdtype.typeclass.get_default()
                 except:
-                    import ipdb
-                    ipdb.set_trace()
-
-
+                    print ("issue in default from hrdtype")
+                    from pudb import set_trace; set_trace() 
 
             if tags.tagExists("descr"):
                 hrdtype.description=tags.tagGet("descr")
@@ -230,6 +228,9 @@ class HRDSchema():
                 self.items_with_alias[alias]=hrdtype
 
     def hrdGet(self,hrd=None,args={},path=None):
+        """
+        populate hrd out of the schema
+        """
         if hrd==None:
             hrd=j.data.hrd.get(content="",prefixWithName=False)
         for key,ttype in self.items.items():

@@ -22,10 +22,9 @@ class StateItem():
     def check(self):
         if self.periodSec>0:
             now=j.data.time.getTimeEpoch()
-            if self.last<now-self.periodSec:
+            if self.last<now-self.periodSec or (self.state!="OK" and self.state!="DISABLED"):
                 #need to execute
                 self.service._executeOnNode("execute",cmd=self.name)
-
 
     @property
     def period(self):
@@ -57,7 +56,7 @@ class StateItem():
 
     @state.setter
     def state(self,val):
-        if val not in ["INIT","ERROR","OK","DISABLED","DO","CHANGED"]:
+        if val not in ["INIT","ERROR","OK","DISABLED","DO","CHANGED","CHANGEDHRD"]:
             raise j.exceptions.RuntimeError("state can only be INIT,ERROR,OK,DISABLED,DO,CHANGED")
         if val!=self._state:
             self._state=val
@@ -84,10 +83,9 @@ class StateItem():
             self.changed=True
 
     @property
-    def action(self):
-        from IPython import embed
-        print ("DEBUG NOW action get state item")
-        embed()
+    def actionObj(self):
+        # action=self.states.service.getAction(self.name)
+        return self.states.service.recipe.actionmethods[self.name]
         
     @property
     def model(self):
