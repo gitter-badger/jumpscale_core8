@@ -88,5 +88,5 @@ curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/inst
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/InstallTools.py > $TMPDIR/InstallTools.py
 cd $TMPDIR
 python3.5 bootstrap.py
-js 'j.tools.cuisine.local.installerdevelop.installJS8Deps()'
+js8 'j.tools.cuisine.local.installerdevelop.installJS8Deps()'
 
