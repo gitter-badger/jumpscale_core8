@@ -85,8 +85,8 @@ fi
 set -ex
 branch=js8-with-js7
 curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/bootstrap.py > $TMPDIR/bootstrap.py
-curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/InstallTools.py > $TMPDIR/InstallTools.py
+curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/InstallTools.py > $TMPDIR/InstallTools.py
 cd $TMPDIR
-python3.5 /opt/code/github/jumpscale/jumpscale_core8/install/web/bootstrap.py
+python3.5 bootstrap.py
 js 'j.tools.cuisine.local.installerdevelop.installJS8Deps()'
 
