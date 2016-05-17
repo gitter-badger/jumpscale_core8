@@ -7,7 +7,7 @@ import time
 if "JSBRANCH" in os.environ:
     branch=os.environ["JSBRANCH"]
 else:
-    branch="master"
+    branch="js8-with-js7"
 
 if "TMPDIR" in os.environ:
     tmpdir=os.environ["TMPDIR"]
@@ -22,29 +22,29 @@ print("bootstrap installtools in dir %s and use branch:'%s'"%(tmpdir,branch))
 
 path="%s/InstallTools.py"%tmpdir
 
-overwrite=True #set on False for development or debugging
+# overwrite=True #set on False for development or debugging
 
-if overwrite and os.path.exists(path):
-    os.remove(path)
-    try:
-        os.remove(path+"c")
-    except:
-        pass
+# if overwrite and os.path.exists(path):
+#     os.remove(path)
+#     try:
+#         os.remove(path+"c")
+#     except:
+#         pass
 
-import random
+# import random
 
-if not os.path.exists(path):
-    print("overwrite")
-    r=random.randint(1, 10000)#to make sure caching does not work on internet
-    # cmd="curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path)
-    cmd = "cp /opt/code/github/jumpscale/jumpscale_core8/install/InstallTools.py %s" % path
-    print (cmd)
-    os.system(cmd)
+# if not os.path.exists(path):
+#     print("overwrite")
+#     r=random.randint(1, 10000)#to make sure caching does not work on internet
+#     # cmd="curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/%s/install/InstallTools.py?%s > %s"%(branch,r,path)
+#     cmd = "cp /opt/code/github/jumpscale/jumpscale_core8/install/InstallTools.py %s" % path
+#     print (cmd)
+#     os.system(cmd)
 
 
 
 from importlib import util
-spec=util.spec_from_file_location("InstallTools",path)
+spec=util.spec_from_file_location("InstallTools", path)
 InstallTools=spec.loader.load_module()
 # module=importlib.util.module_from_spec(spec)
 
