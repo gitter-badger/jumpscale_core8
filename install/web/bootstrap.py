@@ -81,7 +81,7 @@ if "DEVELOP" in os.environ:
     do.installer.prepareUbuntu15Development()
 
 print("install jumpscale8")
-do.installer.installJS()
+do.installer.installJS(JSBRANCH='js8-with-js7')
 
 from JumpScale import j
 
