@@ -18,7 +18,7 @@ set -ex
 # export JSGIT='https://github.com/Jumpscale/jumpscale_core8.git'
 export PYTHONVERSION='3'
 export AYSGIT='https://github.com/Jumpscale/ays_jumpscale8'
-export AYSBRANCH='js8-with-js7'
+export AYSBRANCH='master'
 
 
 if [ "$(uname)" == "Darwin" ]; then
@@ -83,7 +83,7 @@ fi
 
 
 set -ex
-branch=${AYSBRANCH}
+branch=js8-with-js7
 #curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/bootstrap.py > $TMPDIR/bootstrap.py
 #curl -k https://raw.githubusercontent.com/Jumpscale/jumpscale_core8/$branch/install/web/InstallTools.py > $TMPDIR/InstallTools.py
 cd $TMPDIR
