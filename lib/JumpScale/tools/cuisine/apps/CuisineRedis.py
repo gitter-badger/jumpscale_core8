@@ -22,9 +22,9 @@ class Redis():
         self.cuisine = cuisine
 
     @actionrun(action=True)
-    def build(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
+    def install(self,name="main",ip="localhost", port=6379, maxram=200, appendonly=True,snapshot=False,slave=(),ismaster=False,passwd=None,unixsocket=True,start=True):
         self.cuisine.installer.base()
-        if not self.cuisine.core.isMac:
+        if self.cuisine.core.isUbuntu:
 
             C="""
             #!/bin/bash
@@ -60,7 +60,10 @@ class Redis():
             self.cuisine.core.run_script(C)
         else:
             if self.cuisine.core.command_check("redis-server")==False:
-                self.cuisine.package.install("redis")
+                if self.cuisine.core.isMac:
+                    self.cuisine.package.install("redis")
+                else:
+                    self.cuisine.package.install("redis-server")
             cmd=self.cuisine.core.command_location("redis-server")
             dest="%s/redis-server"%self.cuisine.core.dir_paths["binDir"]
             if cmd!=dest:

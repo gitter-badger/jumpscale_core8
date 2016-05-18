@@ -3,6 +3,8 @@ from JumpScale import j
 
 service_api = Blueprint('service_api', __name__)
 
+#@todo (*1*) to christope, queston, is this still required here (kristof), shouldn't this be in separate repo
+
 def get_service_dict(service):
     return({
         'actions':[a for a in dir(service.actions) if not a.startswith('_')],
@@ -35,8 +37,8 @@ def service_get():
     It is handler for GET /service
     '''
     path = request.args.get('path')
-    j.atyourservice.basepath = path
-    return jsonify(services=list(map(get_service_dict, j.atyourservice.services.values())))
+    atyourservice=j.atyourservice.get(path)
+    return jsonify(services=list(map(get_service_dict, atyourservice.services.values())))
 
 
 @service_api.route('/service/<name>', methods=['GET'])
@@ -46,8 +48,8 @@ def service_byName_get(name):
     It is handler for GET /service/<name>
     '''
     path = request.args.get('path')
-    j.atyourservice.basepath = path
-    service = (i for i in j.atyourservice.services.values() if i.name == name).__next__()
+    atyourservice=j.atyourservice.get(path)
+    service = (i for i in atyourservice.services.values() if i.name == name).__next__()
     return jsonify(service=get_service_dict(service))
 
 
@@ -58,8 +60,8 @@ def service_byName_actionlist_get(name):
     It is handler for GET /service/<name>/actionlist
     '''
     path = request.args.get('path')
-    j.atyourservice.basepath = path
-    service = (i for i in j.atyourservice.services.values() if i.name == name).__next__()
+    atyourservice=j.atyourservice.get(path)
+    service = (i for i in atyourservice.services.values() if i.name == name).__next__()
     return jsonify(actionlist=[a for a in dir(service.actions) if not a.startswith('_')])
 
 
@@ -70,7 +72,7 @@ def service_byName_byAction_post(action, name):
     It is handler for POST /service/<name>/<action>
     '''
     path = request.args.get('path')
-    j.atyourservice.basepath = path
-    service = (i for i in j.atyourservice.services.values() if i.name == name).__next__()
+    atyourservice=j.atyourservice.get(path)
+    service = (i for i in atyourservice.services.values() if i.name == name).__next__()
     service.runAction(action)
     return jsonify(status=0)

@@ -16,7 +16,7 @@ from pygments.formatters import get_formatter_by_name
 
 class Action:
     def __init__(self, action=None,runid=0,actionRecover=None,args=(),kwargs={},die=True,stdOutput=True,errorOutput=True,retry=1,\
-                serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False,actionshow=True):
+                serviceObj=None,deps=[],key="",selfGeneratorCode="",force=False,actionshow=True,dynamicArguments={}):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -37,10 +37,10 @@ class Action:
 
         '''
         self.logger = j.logger.get("j.actions")
+        # self.logger.debug("OPEN ACTION:%s"%action)
 
         if key=="" and action==None:
             raise j.exceptions.RuntimeError("need to specify key or action")
-
 
         self._args=""
         self._kwargs=""
@@ -76,19 +76,26 @@ class Action:
         self.die=die
         self.force=force
 
+        self._hrd={}
+
         self.traceback=""
 
         self.runid = str(runid)
 
         if action!=None:
 
+            self.serviceObj = serviceObj
             self.selfGeneratorCode=selfGeneratorCode
+            self.dynamicArguments=dynamicArguments
+
+            # In the case of AYS action execution. We passe the service Obj directly.
+            # actions are already loaded in service object. we can directly take the action object as selfobj
+            if self.serviceObj is not None and hasattr(self.serviceObj, 'actions') and self.selfGeneratorCode == '':
+                self._selfobj = serviceObj.actions
 
             self.args = args
             self.imports = kwargs.pop("imports", [])
-            self.kwargs= kwargs
-
-            self.serviceObj = serviceObj
+            self.kwargs = kwargs
 
             self.method=action
 
@@ -210,6 +217,7 @@ class Action:
         model["_parents"]=self._parents
         model["error"]=self.error
         model["selfGeneratorCode"]=self.selfGeneratorCode
+        model["dynamicArguments"]=self.dynamicArguments
         model["runid"] = self.runid
         model["_state_show"] = self._state_show
         model["_actionRecover"] = self._actionRecover
@@ -217,6 +225,7 @@ class Action:
         model["die"] = self.die
         model["calling_path"] = self.calling_path
         model["calling_linenr"] = self.calling_linenr
+        model["_hrd"]=self._hrd
 
         return model
 
@@ -231,10 +240,13 @@ class Action:
         if data != None:
             data2 = j.data.serializer.json.loads(data)
 
+            if "_hrd" not in data2:
+                data2["_hrd"]={}
+
             if all:
                 data3=data2
             else:
-                toload=["_state","_lastArgsMD5","_lastCodeMD5","_result","traceback","stdouterr"]
+                toload=["_state","_lastArgsMD5","_lastCodeMD5","_result","traceback","stdouterr","_hrd"]
                 data3={}
                 for item in toload:
                     data3[item]=data2[item]
@@ -288,11 +300,11 @@ class Action:
         self._source=j.data.text.strip(source)
         self._name = source.split("\n")[0].strip().replace("def ", "").split("(")[0].strip()
         self._path = inspect.getsourcefile(val).replace("//", "/")
-        self._doc=inspect.getdoc(self.method)
-        if self._doc==None:
-            self._doc=""
-        if self._doc!="" and self._doc[-1]!="\n":
-            self._doc+="\n"
+        # self._doc=inspect.getdoc(self.method)
+        # if self._doc==None:
+        #     self._doc=""
+        # if self._doc!="" and self._doc[-1]!="\n":
+        #     self._doc+="\n"
 
     @property
     def sourceToExecute(self):
@@ -309,13 +321,14 @@ class Action:
         $source
         """
         #not used for now
-        s2="""
-        res=$name(*j.data.serializer.json.loads(args),**j.data.serializer.json.loads(kwargs))
+        # s2="""
+        # res=$name(*j.data.serializer.json.loads(args),**j.data.serializer.json.loads(kwargs))
 
-        print ("**RESULT**")
-        print (j.data.serializer.json.dumps(res,True,True))
+        # print ("**RESULT**")
+        # print (j.data.serializer.json.dumps(res,True,True))
 
-        """
+        # """
+
         s=j.data.text.strip(s)
         s = s.replace("$imports", '\n'.join(self.imports))
         args=j.data.serializer.json.dumps(self.args,sort_keys=True, indent=True)
@@ -333,6 +346,14 @@ class Action:
         s=s.replace("$source",self.source)
         s=s.replace("$name",self.name)
 
+        if "$(" in s:
+            s=self.hrd.applyOnContent(s)
+            s=j.dirs.replaceTxtDirVars(s)
+        elif "$" in s:
+            s=j.dirs.replaceTxtDirVars(s)
+
+        if "$(" in s:
+            raise RuntimeError("$() should not be there, probably hrd has not been set")
         return s
 
     @property
@@ -404,6 +425,16 @@ class Action:
             self._result = j.data.serializer.json.dumps(val, True, True)
 
     @property
+    def hrd(self):
+        hrd=j.data.hrd.getHRDFromDict(self._hrd)
+        return hrd
+
+    @hrd.setter
+    def hrd(self,hrd):
+        #@todo need to check if hrd or text and convert
+        self._hrd=hrd.getHRDAsDict()
+
+    @property
     def args(self):
         if self._args == "":
             return ()
@@ -412,6 +443,7 @@ class Action:
 
     @args.setter
     def args(self,val):
+        
         if val == ():
             self._args = ""
         else:
@@ -484,6 +516,8 @@ class Action:
 
     @property
     def selfobj(self):
+        if self.selfGeneratorCode==None or self.selfGeneratorCode.lower().strip()=="none":
+            return None
         if self.selfGeneratorCode!="": #this is the code which needs to generate a selfobj
             try:
                 l={}
@@ -502,6 +536,10 @@ class Action:
     def execute(self):
 
         self.check() #see about changed source code
+
+        # if "$" in self.sourceToExecute:
+        #     raise RuntimeError("$ should not be there")
+
         j.actions.addToStack(self)
 
         if self.state == "OK" and self.force==False:
@@ -526,13 +564,20 @@ class Action:
             err = ''
 
             while self.state != "ERROR" and ok==False and counter<self.retry+1:
+                
+                kwargs=self.kwargs
+
+                if self.dynamicArguments !="":
+                    for akey,acode in self.dynamicArguments.items():
+                        l={}
+                        kwargs[akey]=eval(acode,globals(),l)
 
                 try:
                     if self.selfobj!="**NOTHING**":
-                        #here we try to reconstruct the cuisine object@
-                        self.result = self.method(self.selfobj,*self.args,**self.kwargs)
+                        #here we try to reconstruct the cuisine object@ or other self objects
+                        self.result = self.method(self.selfobj,*self.args,**kwargs)
                     else:
-                        self.result = self.method(*self.args,**self.kwargs)
+                        self.result = self.method(*self.args,**kwargs)
 
                     ok=True
                     rcode=0

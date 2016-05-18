@@ -42,6 +42,7 @@ class ActionDecorator(object):
             if action:
                 func_file = func.__code__.co_filename
                 imports = list()
+                #why do we use non jumpscale constructs here?
                 with open(func_file, 'r') as f:
                     lines = f.readlines()
                 for line in lines:

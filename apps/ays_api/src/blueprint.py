@@ -18,8 +18,8 @@ def blueprint_get():
     It is handler for GET /blueprint
     '''
     path = request.args.get('path')
-    j.atyourservice.basepath = path
-    return jsonify(blueprints=list(map(get_blueprint_dict, j.atyourservice.blueprints)))
+    atyourservice=j.atyourservice.get(path)
+    return jsonify(blueprints=list(map(get_blueprint_dict, atyourservice.blueprints)))
 
 
 @blueprint_api.route('/blueprint', methods=['POST'])
@@ -29,8 +29,8 @@ def blueprint_post():
     It is handler for POST /blueprint
     '''
     path = request.args.get('path')
-    j.atyourservice.basepath = path
-    num = max(int (i.path.split('/')[-1].split('_')[0]) for i in j.atyourservice.blueprints)+1
+    atyourservice=j.atyourservice.get(path)
+    num = max(int (i.path.split('/')[-1].split('_')[0]) for i in atyourservice.blueprints)+1
     j.sal.fs.createEmptyFile(os.path.join(path, 'blueprints', "%d_%s.yaml"%(num,request.json['name'])))
     return jsonify(status=0)
 
@@ -42,8 +42,8 @@ def blueprint_byName_get(name):
     It is handler for GET /blueprint/<name>
     '''
     path = request.args.get('path')
-    j.atyourservice.basepath = path
-    blueprint = (i for i in j.atyourservice.blueprints if i.path.split('/')[-1].split('_')[1].split('.')[0] == name).__next__()
+    atyourservice=j.atyourservice.get(path)
+    blueprint = (i for i in atyourservice.blueprints if i.path.split('/')[-1].split('_')[1].split('.')[0] == name).__next__()
     return jsonify(blueprint=get_blueprint_dict(blueprint))
 
 
@@ -54,9 +54,9 @@ def blueprint_byName_delete(name):
     It is handler for DELETE /blueprint/<name>
     '''
     path = request.args.get('path')
-    j.atyourservice.basepath = path
+    atyourservice=j.atyourservice.get(path)
     dest = os.path.join(path,'_blueprints')
     j.sal.fs.createDir(dest)
-    blueprint = (i for i in j.atyourservice.blueprints if i.path.split('/')[-1].split('_')[1].split('.')[0] == name).__next__()
+    blueprint = (i for i in atyourservice.blueprints if i.path.split('/')[-1].split('_')[1].split('.')[0] == name).__next__()
     j.sal.fs.moveFile(blueprint.path,dest)
     return jsonify(status=0)

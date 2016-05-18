@@ -1,6 +1,7 @@
 from JumpScale import j
 
 import Models
+import CockpitEventModels
 import inspect
 
 try:
@@ -42,3 +43,9 @@ class System(NameSpaceLoader):
     def __init__(self):
         self.__jslocation__ = "j.data.models.system"
         super(System, self).__init__(Models)
+
+
+class CockpitEvent(NameSpaceLoader):
+    def __init__(self):
+        self.__jslocation__ = "j.data.models.cockpit_event"
+        super(CockpitEvent, self).__init__(CockpitEventModels)

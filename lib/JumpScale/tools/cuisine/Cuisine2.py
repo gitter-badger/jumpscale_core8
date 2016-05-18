@@ -27,7 +27,8 @@ from CuisineVRouter import CuisineVRouter
 from CuisineTmux import CuisineTmux
 from CuisineGeoDns import CuisineGeoDns
 from CuisineCore import CuisineCore
-
+from CuisinePNode import CuisinePNode
+from CuisineStor import CuisineStor
 
 class JSCuisine:
 
@@ -72,13 +73,23 @@ class JSCuisine:
         self.vrouter=CuisineVRouter(self.executor,self)
         self.tmux=CuisineTmux(self.executor,self)
 
+        self.pnode=CuisinePNode(self.executor,self)
+
+        self.stor = CuisineStor(self.executor,self)
+
+
+
 
         self.done=[]
 
     @property
+    def btrfs(self):
+        j.sal.btrfs._executor=self.executor
+        return j.sal.btrfs
+
+    @property
     def package(self):
         if self._package==None:
-
             self._package=CuisinePackage(self.executor,self)
         return self._package
 

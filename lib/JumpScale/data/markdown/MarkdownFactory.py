@@ -94,7 +94,7 @@ class MDTable():
                     m[x]=len(col)
                 x+=1
         return m
-    
+
     def __repr__(self):
         def pad(text,l,add=" "):
             while(len(text)<l):
@@ -140,7 +140,7 @@ class MDHeader():
         self.level=level
         self.title=title
         self.type="header"
-    
+
     def __repr__(self):
         pre=""
         for i in range(self.level):
@@ -154,15 +154,15 @@ class MDListItem():
         self.level=level
         self.text=text
         self.type="list"
-    
+
     def __repr__(self):
         pre=""
         if self.level>1:
             for i in range(self.level-1):
                 pre+="    "
-            return "%s- %s"%(pre,self.text)
+            return "%s %s"%(pre,self.text)
         else:
-            return "- %s"%(self.text)
+            return " %s"%(self.text)
 
     __str__=__repr__
 
@@ -172,7 +172,7 @@ class MDComment():
         self.type="comment"
 
     def __repr__(self):
-        out="<!--\n%s\n-->\n"%self.text            
+        out="<!--\n%s\n-->\n"%self.text
 
     __str__=__repr__
 
@@ -180,21 +180,21 @@ class MDComment1Line():
     def __init__(self,text):
         self.text=text
         self.type="comment1line"
-    
-    def __repr__(self):
-        out="<!--%s-->\n"%self.text    
-        return out     
 
-    __str__=__repr__    
+    def __repr__(self):
+        out="<!--%s-->\n"%self.text
+        return out
+
+    __str__=__repr__
 
 class MDBlock():
     def __init__(self,text):
         self.text=text
         self.type="block"
-    
+
     def __repr__(self):
         out=self.text
-        if len(out)>0:        
+        if len(out)>0:
             if out[-1]!="\n":
                 out+="\n"
             if out[-2]!="\n":
@@ -208,7 +208,7 @@ class MDCode():
         self.text=text
         self.type="code"
         self.lang=lang
-    
+
     def __repr__(self):
         out=self.text
         code="\n```$lang\n$code\n```\n"
@@ -224,7 +224,7 @@ class MDData():
     def __init__(self,ddict,name="",guid=""):
         self.name=name
         self.type="data"
-        self.ddict=ddict  
+        self.ddict=ddict
         self._hash=""
         if name=="":
             if "name" in ddict:
@@ -248,7 +248,7 @@ class MDData():
 
     @property
     def datahr(self):
-        return j.data.serializer.yaml.dumps(self.ddict)    
+        return j.data.serializer.yaml.dumps(self.ddict)
 
     @property
     def hash(self):
@@ -310,36 +310,36 @@ class MarkdownDocument():
     def addMDHeader(self,level,title):
         """
         """
-        self.items.append(MDHeader(level,title))    
+        self.items.append(MDHeader(level,title))
 
     def addMDListItem(self,level,text):
         """
         """
-        self.items.append(MDListItem(level,text))    
+        self.items.append(MDListItem(level,text))
 
     def addMDComment(self,text):
         """
         """
-        self.items.append(MDComment(text))    
+        self.items.append(MDComment(text))
 
     def addMDComment1Line(self,text):
         """
         """
-        self.items.append(MDComment1Line(text))   
+        self.items.append(MDComment1Line(text))
 
     def addMDBlock(self,text):
         """
         """
-        self.items.append(MDBlock(text))  
+        self.items.append(MDBlock(text))
 
     def addMDCode(self,text,lang):
         """
         """
-        self.items.append(MDCode(text,lang))  
+        self.items.append(MDCode(text,lang))
 
     def addMDData(self,ddict,name="",guid=""):
         ddict=copy.copy(ddict)
-        self.items.append(MDData(ddict,name,guid))  
+        self.items.append(MDData(ddict,name,guid))
 
     def _parse(self):
         self._findFancyHeaders()
@@ -373,7 +373,7 @@ class MarkdownDocument():
             linestripped=line.strip()
 
             #substate
-            if linestripped.startswith("<!--") and linestripped.endswith("-->"):                                    
+            if linestripped.startswith("<!--") and linestripped.endswith("-->"):
                 substate=linestripped[4:-3].strip()
                 self.addMDComment1Line(substate)
                 block=""
@@ -406,7 +406,7 @@ class MarkdownDocument():
 
                 if state=="LIST":
                     if not (linestripped.startswith("-") or linestripped.startswith("*")):
-                        state 
+                        state
                     line0=line
                     level=0
                     while line0.startswith(" "):
@@ -454,11 +454,11 @@ class MarkdownDocument():
                 state="CODE"
                 lang=line.strip("'` ")
                 continue
-            
+
             if state=="CODE":
                 if linestripped.startswith("```") or linestripped.startswith("'''"):
                     state=""
-                    # from pudb import set_trace; set_trace() 
+                    # from pudb import set_trace; set_trace()
                     if substate.startswith("data"):
                         tmp,name,guid=substate.split("|")
                         data=j.data.serializer.yaml.loads(str(block))
@@ -486,7 +486,7 @@ class MarkdownDocument():
             self._tokens=bl.parse(self._content)
         return self._tokens
 
-    @tokens.setter  
+    @tokens.setter
     def tokens(self,val):
         self._changed_tokens=True
         self._tokens=val
@@ -527,7 +527,7 @@ class MarkdownDocument():
                 out+=str(item).strip()+"\n\n"
             else:
                 out+=str(item).rstrip()+"\n"
-                
+
             prevtype=item.type
         return out
 

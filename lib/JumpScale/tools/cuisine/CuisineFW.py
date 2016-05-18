@@ -74,6 +74,7 @@ class CuisineFW():
 
     def flush(self):
         C = """
+        ufw disable
         iptables --flush
         iptables --delete-chain
         iptables --table nat --flush
@@ -84,4 +85,11 @@ class CuisineFW():
         self.cuisine.core.run_script(C)
 
     def show(self):
-        print(self.cuisine.core.run("iptables -t nat -nvL"))
+        a=self.ufw_rules_allow
+        b=self.ufw_rules_deny
+        print ("ALLOW")
+        print (a)
+        print ("DENY")
+        print (b)
+
+        # print(self.cuisine.core.run("iptables -t nat -nvL"))

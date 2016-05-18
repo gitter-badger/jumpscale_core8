@@ -116,14 +116,46 @@ class CuisineBootMediaInstaller(object):
 
         return devs
 
-    def ubuntu(self, deviceid):
-        name = self._downloadImage("http://releases.ubuntu.com/15.10/ubuntu-15.10-server-amd64.iso")
+    def ubuntu(self, platform="amd64",deviceid=None):
+        """
+        if platform none then it will use self.cuisine.node.hwplatform
+        
+        example: hwplatform = rpi_2b, orangepi_plus,amd64
+
+        """
+        if platform=="amd64":
+            name = self._downloadImage("http://releases.ubuntu.com/15.10/ubuntu-15.10-server-amd64.iso")
+        else:
+            raise j.exceptions.Input("platform not supported yet")
+
         path = "$tmpDir/%s" % name
         cmd = 'dd if=%s of=/dev/%s bs=4000' % (path, deviceid)
         self.cuisine.core.sudo(cmd)
 
-    def arch(self, deviceid=None):
-        url = "http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz"
+    def debian(self, platform="orangepi_plus",deviceid=None):
+        """
+        if platform none then it will use self.cuisine.node.hwplatform
+        
+        example: hwplatform = rpi_2b, orangepi_plus,amd64
+
+        """        
+        if platform=="orangepi_plus":
+            raise RuntimeError("not implemented")
+        else:
+            raise j.exceptions.Input("platform not supported yet")        
+        # self.formatCardDeployImage(url, deviceid=deviceid)
+
+    def arch(self, platform="rpi_2b",deviceid=None):
+        """
+        if platform none then it will use self.cuisine.node.hwplatform
+        
+        example: hwplatform = rpi_2b, orangepi_plus,amd64
+
+        """        
+        if platform=="rpi_2b":
+            url = "http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz"
+        else:
+            raise j.exceptions.Input("platform not supported yet")        
         self.formatCardDeployImage(url, deviceid=deviceid)
 
     def g8os_arm(self, url, gid, nid, deviceid=None):
@@ -143,7 +175,17 @@ class CuisineBootMediaInstaller(object):
 
         self.formatCardDeployImage(url, deviceid=deviceid, part_type='msdos', post_install=configure)
 
-    def g8os(self, url, gid, nid, deviceid=None):
+    def g8os(self, gid, nid, platform="amd64",deviceid=None):
+        """
+        if platform none then it will use self.cuisine.node.hwplatform
+        
+        example: hwplatform = rpi_2b, orangepi_plus,amd64
+
+        """        
+        if platform=="amd64":
+            url="https://stor.jumpscale.org/public/g8os.tgz"
+        else:
+            raise j.exceptions.Input("platform not supported yet")                
         fstab_tmpl = """\
         PARTUUID={rootuuid}\t/\text4\trw,relatime,data=ordered\t0 1
         PARTUUID={bootuuid}\t/boot\tvfat\trw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro    0 2

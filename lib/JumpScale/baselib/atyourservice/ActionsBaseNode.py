@@ -453,7 +453,7 @@ class ActionsBaseNode():
 
         build_host = None
         if j.data.types.string.check(build_server):
-            domain, name, version, instance, role = j.atyourservice.parseKey(build_server)
+            domain, name, instance, role = j.atyourservice._parseKey(build_server)
             build_host = j.atyourservice.getService(domain=domain, name=name, instance=instance, role=role)
         else:
             build_host = build_server

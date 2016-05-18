@@ -93,6 +93,16 @@ class GitClient(object):
         if res["R"]!=[]:
             return True
 
+    def hasModifiedFiles(self):
+        cmd = "cd %s;git status --porcelain" % self.baseDir
+        rc, out = j.sal.process.execute(cmd)
+        for item in out.split("\n"):
+            item = item.strip()
+            if item == '':
+                continue
+            return True
+        return False
+
     def getModifiedFiles(self,collapse=False,ignore=[]):
         result = {}
         result["D"] = []
@@ -118,19 +128,29 @@ class GitClient(object):
                 if checkignore(ignore,_file):
                     continue
                 result["N"].append(_file)
+            if state in ["D","N","R","M"]:
+                if checkignore(ignore,_file):
+                    continue
+                if _file not in result[state]:
+                    result[state].append(_file)
 
         for diff in self.repo.index.diff(None):
+            #@todo does not work, did not show my changes !!! (*1*)
             path = diff.a_blob.path
             if checkignore(ignore,path):
                 continue
             if diff.deleted_file:
-                result["D"].append(path)
+                if path not in result["D"]:
+                    result["D"].append(path)
             elif diff.new_file:
-                result["N"].append(path)
+                if path not in result["N"]:
+                    result["N"].append(path)
             elif diff.renamed:
-                result["R"].append(path)
+                if path not in result["R"]:
+                    result["R"].append(path)
             else:
-                result["M"].append(path)
+                if path not in result["M"]:
+                    result["M"].append(path)
 
         if collapse:
             result=result["N"]+result["M"]+result["R"]+result["D"]
@@ -164,9 +184,12 @@ class GitClient(object):
     def fetch(self):
         self.repo.git.fetch()
 
-    def commit(self, message='', addremove=True):
+    def commit(self, message='', addremove=True):        
         if addremove:
             self.addRemoveFiles()
+        if self.hasModifiedFiles()==False:
+            print ("no need to commit, no changed files")
+            return            
         return self.repo.index.commit(message)
 
     def push(self, force=False):

@@ -6,7 +6,6 @@ import re
 from PrimitiveTypes import *
 
 
-
 class Guid(String):
     '''Generic GUID type'''
 

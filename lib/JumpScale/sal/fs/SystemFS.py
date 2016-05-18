@@ -436,7 +436,7 @@ class SystemFS(SALObject):
             cmd += " '%s' '%s'" % (src, dst)
             print (cmd)
 
-            return j.tools.cuisine.local.run(cmd)
+            return j.tools.cuisine.local.core.run(cmd)
 
 
     def removeDirTree(self, path, onlyLogWarningOnRemoveError=False):
@@ -1331,6 +1331,9 @@ class SystemFS(SALObject):
             data = fp.read()
         self.logger.debug('File %s is closed after reading'%filename)
         return data
+
+    def readFile(self,filename):
+        return self.fileGetContents(filename)
 
     def fileGetUncommentedContents(self, filename):
         """Read a file and get uncommented contents of that file

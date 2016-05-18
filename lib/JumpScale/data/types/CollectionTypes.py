@@ -2,6 +2,38 @@
 
 from PrimitiveTypes import *
 
+class YAML():
+    '''Generic dictionary type'''
+
+    def __init__(self):
+        self.NAME = 'yaml'
+        self.BASETYPE = 'dictionary'
+
+    def check(self, value):
+        '''Check whether provided value is a dict'''
+        return isinstance(value, dict)
+
+    def get_default(self):
+        return dict()
+
+    def fromString(self, s):
+        """
+        return string from a dict
+        """
+        if j.data.types.dict.check(s):
+            return s
+        else:
+            # s = s.replace("''", '"')
+            j.data.serializer.yaml.loads(s)
+            return s
+
+    def toString(self, v):
+        return j.data.serializer.yaml.dumps(v)
+
+class JSON():
+    def __init__(self):
+        self.NAME = 'json'
+        self.BASETYPE = 'dictionary'
 
 class Dictionary():
     '''Generic dictionary type'''
@@ -32,7 +64,7 @@ class Dictionary():
             return s
 
     def toString(self, v):
-        return j.data.serializer.json.dumps(v)
+        return j.data.serializer.json.dumps(v,True,True)
 
 
 class List():

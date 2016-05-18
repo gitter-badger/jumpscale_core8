@@ -55,7 +55,7 @@ class AYSKey(unittest.TestCase):
 
     def test_parse(self):
         for test in self.test_table:
-            domain, name, version, instance, role = j.atyourservice.parseKey(test['key'])
+            domain, name, instance, role = j.atyourservice._parseKey(test['key'])
             self.assertEqual(domain, test['expect']['domain'], "domain should be %s, found %s" % (test['expect']['domain'], domain))
             self.assertEqual(name, test['expect']['name'],  "name should be %s, found %s" % (test['expect']['name'], name))
             self.assertEqual(instance, test['expect']['instance'],  "instance should be %s, found %s" % (test['expect']['instance'], instance))

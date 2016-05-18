@@ -79,7 +79,8 @@ class ActionController(object):
     def selectAction(self):
         return j.tools.console.askChoice(j.actions.actions)
 
-    def add(self, action,actionRecover=None,args=(),kwargs={},die=True,stdOutput=False,errorOutput=True,retry=0,serviceObj=None,deps=None,executeNow=True,selfGeneratorCode="",force=True,showout=None,actionshow=True):
+    def add(self, action,actionRecover=None,args=(),kwargs={},die=True,stdOutput=False,errorOutput=True,retry=0,serviceObj=None,\
+            deps=None,executeNow=True,selfGeneratorCode="",force=True,showout=None,actionshow=True,dynamicArguments={}):
         '''
         self.doc is in doc string of method
         specify recover actions in the description
@@ -95,6 +96,11 @@ class ActionController(object):
         @param args is dict with arguments
         @param serviceObj: service, will be used to get category filled in e.g. selfGeneratorCode='selfobj=None'
             needs to be done selfobj=....  ... is whatever code which fill filling selfobj
+            BE VERY CAREFUL TO USE THIS, DO NEVER USE IN GEVENT OR ANY OTHER ASYNC FRAMEWORK
+
+        @param dynamicArguments are arguments which will be executed before calling the method e.g. 
+           dargs={}
+           dargs["service"]="j.atyourservice.getService(\"%s\")"%kwargs["service"]
         '''
 
         # from pudb import set_trace; set_trace()
@@ -110,12 +116,11 @@ class ActionController(object):
         fpath=fpath.split("\"")[1].strip()
         linenr=int(linenr.split(" ")[-1])
 
-
         if j.data.types.dict.check(args):
             raise j.exceptions.RuntimeError("cannot create action: args should be a list, kwargs a dict, input error")
 
         action=Action(action,runid=self.runid,actionRecover=actionRecover,args=args,kwargs=kwargs,die=die,stdOutput=stdOutput,errorOutput=errorOutput,\
-            retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force,actionshow=actionshow)
+            retry=retry,serviceObj=serviceObj,deps=deps,selfGeneratorCode=selfGeneratorCode,force=force,actionshow=actionshow,dynamicArguments=dynamicArguments)
 
         action.calling_linenr=linenr
         action.calling_path=fpath

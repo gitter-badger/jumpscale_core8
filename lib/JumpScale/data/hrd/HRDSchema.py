@@ -245,6 +245,7 @@ class HRDSchema():
                         val=ttype.ask()
                 else:
                     continue #no need to further process, already exists in hrd
+
             if ttype.list:
                 try:
                     val=j.data.types.list.fromString(val, ttype=ttype.typeclass)
@@ -270,6 +271,7 @@ class HRDSchema():
 
                 if j.data.types.list.check(val) and len(val)==1:
                     val=val[0] #this to resolve some customer types or yaml inconsistencies, if only 1 member we can use as a non list
+
             hrd.set(ttype.name,val)
             if path==None:
                 hrd.path=path

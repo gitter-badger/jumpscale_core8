@@ -3,6 +3,7 @@ from Issue import Issue
 from Base import replacelabels
 import copy
 from Milestone import RepoMilestone
+from JumpScale.core.errorhandling.OurExceptions import Input
 
 
 class GithubRepo():
@@ -14,6 +15,7 @@ class GithubRepo():
         self._repoclient = None
         self._labels = None
         self.issues = []
+        self.issues_loaded = False
         self._milestones = []
 
     @property
@@ -24,7 +26,7 @@ class GithubRepo():
 
     @property
     def name(self):
-        return self.fullname.split("/",1)[-1]
+        return self.fullname.split("/", 1)[-1]
 
     @property
     def type(self):
@@ -83,8 +85,10 @@ class GithubRepo():
         issues = self.issues_by_type(filter)
         return issues['task']
 
-    @labels.setter
-    def labels(self, labels2set):
+    def labelsSet(self, labels2set,ignoreDelete=["p_"],delete=True):
+        """
+        @param ignore all labels starting with ignore will not be deleted
+        """
 
         for item in labels2set:
             if not j.data.types.string.check(item):
@@ -130,14 +134,19 @@ class GithubRepo():
 
         name = ""
 
-        labelstowalk = copy.copy(self.labels)
-        for item in labelstowalk:
-            if item.name not in labels2set:
-                self.logger.info(
-                    "delete label: %s %s" %
-                    (self.fullname, item.name))
-                item.delete()
-                self._labels = None
+        if delete:
+            labelstowalk = copy.copy(self.labels)
+            for item in labelstowalk:
+                if item.name not in labels2set:
+                    self.logger.info("delete label: %s %s" % (self.fullname, item.name))
+                    ignoreDeleteDo=False
+                    for filteritem in ignoreDelete:
+                        if item.name.startswith(filteritem):
+                            ignoreDeleteDo=True
+                    if ignoreDeleteDo==False:
+                        from pudb import set_trace; set_trace() 
+                        item.delete()
+                    self._labels = None
 
         # check the colors
         labelstowalk = copy.copy(self.labels)
@@ -161,21 +170,29 @@ class GithubRepo():
                 return item
         raise j.exceptions.Input("Dit not find label: '%s'" % name)
 
-    def getIssueFromMarkdown(self,issueNumber,markdown):
-        i=self.getIssue(issueNumber,False)
+    def getIssueFromMarkdown(self, issueNumber, markdown):
+        i = self.getIssue(issueNumber, False)
         i._loadMD(markdown)
         self.issues.append(i)
         return i
 
-    def getIssue(self,issueNumber,die=True):
+    def getIssue(self, issueNumber, die=True):
         for issue in self.issues:
-            if issue.number==issueNumber:
+            if issue.number == issueNumber:
                 return issue
+        # not found in cache, try to load from github
+        github_issue = self.api.get_issue(issueNumber)
+
+        if github_issue:
+            issue = Issue(repo=self, githubObj=github_issue)
+            self.issues.append(issue)
+            return issue
+
         if die:
-            raise j.exceptions.Input("cannot find issue:%s in repo:%s"%(issueNumber,self))
+            raise j.exceptions.Input("cannot find issue:%s in repo:%s" % (issueNumber, self))
         else:
-            i=Issue(self)
-            i._ddict["number"]=issueNumber
+            i = Issue(self)
+            i._ddict["number"] = issueNumber
             return i
 
     def issues_by_type(self, filter=None):
@@ -274,14 +291,14 @@ class GithubRepo():
 
     def getMilestoneFromGithubObj(self, githubObj):
 
-        found=None
+        found = None
         for item in self._milestones:
             if int(githubObj.number) == int(item.number):
-                found=item
+                found = item
 
-        if found==None:
+        if found is None:
             obj = RepoMilestone(self, githubObj=githubObj)
-            obj._ddict["number"]=githubObj.number
+            obj._ddict["number"] = githubObj.number
             self._milestones.append(obj)
             return obj
         else:
@@ -295,11 +312,11 @@ class GithubRepo():
             if name == item.name.strip() or name == item.title.strip():
                 return item
         if die:
-            raise j.exceptions.Input("Could not find milestone with name:%s" %name)
+            raise j.exceptions.Input("Could not find milestone with name:%s" % name)
         else:
             return None
 
-    def createMilestone(self, name, title, description="",deadline="", owner=""):
+    def createMilestone(self, name, title, description="", deadline="", owner=""):
 
         def getBody(descr, name, owner):
             out = "%s\n\n" % descr
@@ -316,36 +333,30 @@ class GithubRepo():
         if ms is not None:
             if ms.title != title:
                 ms.title = title
-            if ms.deadline != deadline:
-                ms.deadline = deadline
+            # if ms.deadline != deadline:
+            #     ms.deadline = deadline
             tocheck = getBody(description.strip(), name, owner)
             if ms.body.strip() != tocheck.strip():
                 ms.body = tocheck
         else:
             self._milestones = []
-            due = j.data.time.epoch2pythonDateTime(
-                int(j.data.time.any2epoch(deadline)))
+            due = j.data.time.epoch2pythonDateTime(int(j.data.time.any2epoch(deadline)))
             self.logger.info("Create milestone on %s: %s" % (self, title))
             body = getBody(description.strip(), name, owner)
-            # @todo cannot set deadline, please fix. See https://github.com/PyGithub/PyGithub/issues/396
-            self.api.create_milestone(
-                title=title, description=body)#, due_on=due)
+            # workaround for https://github.com/PyGithub/PyGithub/issues/396
+            milestone = self.api.create_milestone(title=title, description=body)  # , due_on=due)
+            milestone.edit(title=title, due_on=due)
 
     def deleteMilestone(self, name):
         if name.strip() == "":
             raise j.exceptions.Input("Name cannot be empty.")
         self.logger.info("Delete milestone on %s: '%s'" % (self, name))
-        ms = self.getMilestone(name)
-        ms.api.delete()
-        self._milestones = []
-
-    def deleteMilestone(self, name):
-        if name.strip() == "":
-            raise j.exceptions.Input("Name cannot be empty.")
-        self.logger.info("Delete milestone on %s: '%s'" % (self, name))
-        ms = self.getMilestone(name)
-        ms.api.delete()
-        self._milestones = []
+        try:
+            ms = self.getMilestone(name)
+            ms.api.delete()
+            self._milestones = []
+        except Input:
+            self.logger.info("Milestone '%s' doesn't exist. no need to delete" % name)
 
     def _labelSubset(self, cat):
         res = []
@@ -402,7 +413,7 @@ class GithubRepo():
 
         return "ffffff"
 
-    def process_issues(self):
+    def process_issues(self, issues=[]):
         """
         find all todo's
         cmds supported
@@ -428,7 +439,7 @@ class GithubRepo():
             'norm': 'normal',
             'urge': 'urgent',
         }
-        
+
         stories_name = [story.story_name for story in self.stories]
 
         def get_story(name):
@@ -437,12 +448,15 @@ class GithubRepo():
                     return story
 
         # process commands & execute
-        for issue in self.issues:
+        if issues == []:
+            issues = self.issues
+
+        for issue in issues:
             for todo in issue.todo:
                 try:
                     cmd, args = todo.split(' ', 1)
                 except Exception as e:
-                    print ("*** WARNING:%s, cannot process todo for %s"%(str(e),todo))                    
+                    self.logger.warning("%s, cannot process todo for %s" % (str(e), todo))
                     continue
 
                 if cmd == 'move':
@@ -474,7 +488,7 @@ class GithubRepo():
                 else:
                     self.logger.warning("command %s not supported" % cmd)
 
-            # Logic after this point is only for home repo
+            # Logic after this point is only for home and org repo
             valid = False
             for typ in ['org_', 'proj_']:
                 if not self.fullname.lower().startswith(typ):
@@ -497,13 +511,39 @@ class GithubRepo():
                 labels.append("type_story")
                 story.labels = labels
 
-            # creaet link between stort and tasks
+            # creaet link between story and tasks
             issue.link_to_story(story)
             story.add_task(issue)
 
     def loadIssues(self):
         for item in self.api.get_issues():
             self.issues.append(Issue(self, githubObj=item))
+        self.issues_loaded=True
+        return self.issues
+
+    def serialize2Markdown(self,path):
+
+        md=j.data.markdown.getDocument()
+        md.addMDHeader(1, "Issues")
+
+        res=self.issues_by_type_state()
+
+        for type in self.types:
+            typeheader=False
+            for state in self.states:
+                issues=res[type][state]
+                stateheader=False
+                for issue in issues:
+                    if typeheader==False:
+                        md.addMDHeader(2, "Type:%s"%type)
+                        typeheader=True
+                    if stateheader==False:
+                        md.addMDHeader(3, "State:%s"%state)
+                        stateheader=True
+                    md.addMDBlock(str(issue.getMarkdown()))
+
+        j.sal.fs.writeFile(path,str(md))
+
 
     def __str__(self):
         return "gitrepo:%s" % self.fullname

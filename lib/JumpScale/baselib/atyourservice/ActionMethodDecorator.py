@@ -7,20 +7,16 @@ import sys
 
 class ActionMethodDecorator(object):
 
-    def __init__(self,action=True,force=True,actionshow=True,actionMethodName=""):
+    def __init__(self,action=True,actionshow=True,actionMethodName="",queue=""):
         self.action=action
-        self.force=force
         self.actionshow=actionshow
         self.name=actionMethodName
 
     def __call__(self, func):
 
-        def wrapper(*args, **kwargs):
+        def wrapper(that, *args, **kwargs):
 
-            cm=self.selfobjCode
-
-            #args[0] is self
-            # cuisine=args[0].cuisine
+            service = that.service
 
             #this makes sure we show the action on terminal
             if "actionshow" in kwargs:
@@ -34,74 +30,78 @@ class ActionMethodDecorator(object):
                 action=self.action
 
             if "force" in kwargs:
-                force=kwargs.pop("force")
+                raise RuntimeError("no longer force ")
+                
+            # if "force" in kwargs:
+            #     force=kwargs.pop("force")
+            # else:
+            #     force=self.force
+            # force=True #because we now have the aysrun so we know what to do and what not
+
+            if "die" in kwargs:
+                die = kwargs.pop('die')
             else:
-                force=self.force
+                die = True
+
+            if self.name=="":
+                self.name=func.__name__
+
+            # print ("ACTION:START: isaction=%s"%action)
+
+            if self.name in ["init","input"]:
+                #will just execute with service as argument
+                action=False
+            
+            state=service.state.getSet(self.name,default="INIT")
 
             if action:
-                args=args[1:]
-
-                action0=j.actions.add(action=func, actionRecover=None,args=args,kwargs=kwargs,die=False,stdOutput=True,\
-                    errorOutput=True,retry=0,executeNow=False,selfGeneratorCode=cm,force=True,actionshow=actionshow)
-
-                service=action0.selfobj.service
                 
-                if force:
-                    service.state.set(action0.name,"DO")
+                #this is safe for e.g.gevent usage, should always return recipe which is alike for all
+                selfGeneratorCode="service=j.atyourservice.getService('%s');selfobj=service.actions" % service.gkey
 
-                stateitem=service.state.getSet(action0.name)
+                action0 = j.actions.add(action=func, actionRecover=None, args=args, kwargs=kwargs, die=False, stdOutput=True,\
+                    errorOutput=True, retry=0, executeNow=False, force=True, actionshow=actionshow,dynamicArguments={},selfGeneratorCode=selfGeneratorCode)
+                
+                if service.hrd!=None:
+                    action0.hrd=service.hrd
+                action0._method=None
+                action0.save()
 
-                method_hash=service.recipe.actionmethods[action0.name].hash
-                hrd_hash=service.hrdhash
-
-                if stateitem.hrd_hash!=hrd_hash:
-                    stateitem.state="CHANGEDHRD"                    
-                    service.save()
-                    service.actions.change(stateitem)
-
-                if stateitem.actionmethod_hash!=method_hash:
-                    stateitem.state="CHANGED"
-                    service.save()
-                    service.actions.change(stateitem)
-
-                if stateitem.name == 'init':
-                    stateitem.state = "CHANGED"
-
-                if stateitem.state=="OK":
-                    print ("NOTHING TODO OK: %s"%stateitem)
-                    action0.state="OK"
-                    action0.save()
-                    return action0.result
-
-                if stateitem.state=="DISABLED":
-                    print ("NOTHING TODO DISABLED: %s"%stateitem)
-                    action0.state="DISABLED"
-                    action0.save()
-                    return
-
+                service.logger.info("Execute Action:%s %s"%(service,func.__name__ ))
                 action0.execute()
-                stateitem.state=action0.state
 
-                stateitem.last=j.data.time.epoch
-                
-                if action0.state=="OK":
-                    stateitem.hrd_hash=service.hrdhash
-                    stateitem.actionmethod_hash=service.recipe.actionmethods[action0.name].hash
-                else:
-                    if "die" in kwargs:
-                        if kwargs["die"]==False:
-                            return action0
+                service.state.set(self.name,action0.state)
+                service.save()                
+
+                if not action0.state=="OK":
+                    if die is False:
+                        return action0
                     msg="**ERROR ACTION**:\n%s"%action0
                     # raise j.exceptions.RuntimeError()
-                    print (msg)
+                    service.logger.error (msg)
                     service.save()
                     sys.exit(1)
 
-                service.save()
-
                 return action0.result
+
             else:
-                return func(*args,**kwargs)
+                result = func(that, *args, **kwargs)
+
+                #@todo escalation does not happen well
+                # try:
+                #     result = func(that, *args, **kwargs)
+                # except Exception as e:
+                #     service.state.set(func.__name__,"ERROR")
+                #     if die:
+                #         service.save()
+                #         raise RuntimeError(e)
+                #         sys.exit(1)
+                #     else:
+                #         return False
+
+                service.state.set(func.__name__,"OK")
+
+            service.save()
 
         functools.update_wrapper(wrapper, func)
         return wrapper

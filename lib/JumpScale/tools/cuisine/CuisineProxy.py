@@ -23,7 +23,12 @@ class CuisineProxy(object):
 
 
     @actionrun(action=True)
-    def webProxyServer(self):
+    def installWebProxyServer(self):
+
+        self.cuisine.fw.ufw_enable()
+        self.cuisine.fw.allowIncoming(8123)
+
+        self.cuisine.btrfs.subvolumeCreate("/storage/polipo_cache")            
 
         self.cuisine.package.install("polipo")
 
@@ -121,7 +126,7 @@ class CuisineProxy(object):
             # Uncomment this if you want to put the on-disk cache in a
             # non-standard location:
 
-            # diskCacheRoot = "~/.polipo-cache/"
+            diskCacheRoot = "/storage/polipo_cache/"
 
             # Uncomment this if you want to disable the local web server:
 
@@ -215,11 +220,6 @@ class CuisineProxy(object):
             """
         self.cuisine.core.file_write("/etc/polipo/config",CONFIG)
 
-        print ("INSTALL OK")
-        print ("to see status: point webbrowser to")
-        print ("http://%s:8123/polipo/status?"%self.cuisine.core.executor.addr)
-        # print ("http://%s:8123/polipo/status?"%self.cuisine.core.executor.addr)
-        print ("configure your webproxy client to use %s on tcp port 8123"%self.cuisine.core.executor.addr)
 
         self.cuisine.core.run("killall polipo",die=False)
 
@@ -227,11 +227,28 @@ class CuisineProxy(object):
 
         self.cuisine.processmanager.ensure("polipo",cmd)
 
-        self.cuisine.avahi.install()
+        print ("INSTALL OK")
+        print ("to see status: point webbrowser to")
+        print ("http://%s:8123/polipo/status?"%self.cuisine.core.executor.addr)
+        print ("configure your webproxy client to use %s on tcp port 8123"%self.cuisine.core.executor.addr)
 
-        # if self.cuisine.core.isUbuntu():
-        #     self.cuisine.core.run("ufw allow 8123")
+        # self.cuisine.avahi.install()
 
+
+    def configureClient(self,addr="",port=8123):
+        if addr=="":
+            addr=self.cuisine.executor.addr
+        config='Acquire::http::Proxy "http://%s:%s";'%(addr,port)
+        if self.cuisine.cuisine.platformtype.myplatform.startswith("ubuntu"):
+            f=self.cuisine.core.file_read("/etc/apt/apt.conf","")
+            f+="\n%s\n"%config
+            self.cuisine.core.file_write("/etc/apt/apt.conf",f)
+        else:
+            raise RuntimeError("not implemented yet")
+        from IPython import embed
+        print ("DEBUG NOW configure client")
+        embed()
+        
 
 
     def __str__(self):

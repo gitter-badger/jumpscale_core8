@@ -4,6 +4,8 @@ from JumpScale import j
 
 import click
 
+cwd = j.sal.fs.getcwd()
+atyourservice=j.atyourservice.get(j.sal.fs.getBaseName(cwd), cwd)
 
 
 
@@ -11,24 +13,24 @@ import click
 @click.group()
 @click.option('--nodebug', default=False, help='disable debug mode', is_flag=True)
 def cli(nodebug):
-    j.atyourservice.debug = not nodebug
+    atyourservice.debug = not nodebug
 
-@click.command()
-@click.argument('name')
-@click.argument('instance')
-@click.option('--count', default=1, help='number of instances you want to create, default is 1')
-@click.option('--domain', default="", help='optional domain of ays')
-@click.option('--version', default="", help='optional version of ays')
-def new(name,instance,count=1,domain="",version=""):
-    """
-    @arg name: name of ays template to use
-    @arg instance: the name for the instance
-    """
-    from ptpython.repl import embed
-    print ("DEBUG NOW new")
-    embed(globals(), locals())
+# @click.command()
+# @click.argument('name')
+# @click.argument('instance')
+# @click.option('--count', default=1, help='number of instances you want to create, default is 1')
+# @click.option('--domain', default="", help='optional domain of ays')
+# @click.option('--version', default="", help='optional version of ays')
+# def new(name,instance,count=1,domain="",version=""):
+#     """
+#     @arg name: name of ays template to use
+#     @arg instance: the name for the instance
+#     """
+#     from ptpython.repl import embed
+#     print ("DEBUG NOW new")
+#     embed(globals(), locals())
 
-    click.echo('new')
+#     click.echo('new')
 
 @click.command()
 @click.option('--role', default="", help='optional role for ays instances to init')
@@ -41,7 +43,7 @@ def init(role="",instance=""):
     the changes with before (last time you did an init) will be shown
 
     """
-    j.atyourservice.init(role=role,instance=instance)
+    atyourservice.init(role=role,instance=instance)
 
 
 #@click.command()
@@ -51,68 +53,97 @@ def init(role="",instance=""):
 #    """
 #    builds specific service
 #    """
-#    j.atyourservice.get(servicekey)
+#    atyourservice.get(servicekey)
 
 @click.command()
 def showactions():
     """
     shows all services with relevant actions
     """
-    j.atyourservice.alog
-    for key,service in j.atyourservice.services.items():
+    atyourservice.alog
+    for key,service in atyourservice.services.items():
         print ("%s"%service)
         for key,action in service.actions.items():
             print ("- %-20s %s"%(key,action))
 
 
-@click.command()
-@click.option('--printonly', default=False, is_flag=True, help='if set will not really execute, only show what would have been done')
-@click.option('--all', default=False, is_flag=True, help='don\'t look for changed services, execute on all')
-@click.option('--ask', default=False, is_flag=True, help='ask on which service to execute the action')
-def apply(printonly=False, all=False, ask=False):
-    """
-    """
-    allservices = all
-    j.atyourservice.apply(printonly=printonly)
+# @click.command()
+# @click.option('--ask', default=False, is_flag=True, help='ask on which service to execute the action')
+# def apply(printonly=False, all=False, ask=False):
+#     """
+#     """
+#     allservices = all
+#     atyourservice.apply(printonly=printonly)
 
 
 @click.command()
 @click.argument('action')
 @click.option('--role', default="", help='optional role for ays instances execute an action on')
 @click.option('--instance', default="", help='optional name of instance')
-@click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
 @click.option('--force', default=False,  is_flag=True,help='force execution even if no change')
+@click.option('--producerroles', default="*",  help='roles of producers which will be taken into consideration, if * all')
 @click.option('--ask', default=False,  is_flag=True,help='ask on which service to execute the action')
-@click.option('--ignorestate', default=False,  is_flag=True,help='if True then state will not be remembered')
-def do(action,role="",instance="",printonly=False, ask=False,ignorestate=False,force=False):
+def do(action,role="",instance="",force=False,producerroles="*", ask=False):
     """
     call an action
     """
-    allservices=all
-    j.atyourservice.do(action,role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
-
+    # allservices=all
+    # atyourservice.do(action,role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
+    run=atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles)
+    print(run)
+    run.execute()
 
 @click.command()
 @click.option('--role', default="", help='optional role for ays instances execute an action on')
 @click.option('--instance', default="", help='optional name of instance')
-@click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
-@click.option('--force', default=False,  is_flag=True,help='force execution even if no change')
+@click.option('--force', default=False,  is_flag=True,help='if True then will ignore state of service action.')
+@click.option('--producerroles', default="*",  help='roles of producers which will be taken into consideration, if * all')
 @click.option('--ask', default=False,  is_flag=True,help='ask on which service to execute the action')
-@click.option('--ignorestate', default=False,  is_flag=True,help='if True then state will not be remembered')
-def install(role="",instance="",printonly=False,all=False, ask=False,ignorestate=False,force=False):
+def install(role="",instance="",force=False,producerroles="*", ask=False):
     """
     make it reality
     if you want more finegrained controle please use the do cmd
     """
-    j.atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
+    # atyourservice.do("install",role=role,instance=instance,printonly=printonly, ask=ask,ignorestate=ignorestate,force=force)
+    run = atyourservice.getRun(role=role,instance=instance,action="install",force=force,producerRoles=producerroles)
+    print(run)
+    run.execute()
+
 
 @click.command()
-@click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
-def uninstall(printonly=False):
+@click.argument('action')
+@click.option('--role', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', default="", help='optional name of instance')
+@click.option('--force', default=False,  is_flag=True,help='if True then will ignore state of service action.')
+@click.option('--producerroles', default="*",  help='roles of producers which will be taken into consideration, if * all')
+def simulate(action,role="",instance="",force=False,producerroles="*"):
     """
-    do uninstall
     """
-    j.atyourservice.uninstall(printonly=printonly)
+    run=atyourservice.getRun(role=role,instance=instance,action=action,force=force,producerRoles=producerroles)
+    print(run)
+
+@click.command()
+@click.argument('action')
+@click.option('--state', default="DO", help='state to set')
+@click.option('--role', default="", help='optional role for ays instances execute an action on')
+@click.option('--instance', default="", help='optional name of instance')
+@click.option('--force', default=False,  is_flag=True,help='if True then will ignore state of service action.')
+@click.option('--producerroles', default="",  help='roles of producers which will be taken into consideration, if empty then none')
+def setstate(action,state="DO",role="",instance="",force=False,producerroles=""):
+    """
+    """
+    atyourservice.setState(actions=[action],role=role,instance=instance,state=state)
+    run=atyourservice.getRun(role=role,instance=instance,action=action,force=False,producerRoles=producerroles)
+    print(run)
+
+
+# @click.command()
+# @click.option('--printonly', default=False,  is_flag=True,help='if set will not really execute, only show what would have been done')
+# def uninstall(printonly=False):
+#     """
+#     do uninstall
+#     """
+#     atyourservice.uninstall(printonly=printonly)
 
 
 @click.command()
@@ -120,14 +151,14 @@ def uninstall(printonly=False):
 @click.argument('instance')
 def showproducers(role,instance):
     print ("producers:")
-    ays=j.atyourservice.getService(role,instance)
+    ays=atyourservice.getService(role,instance)
     ays.printProducersRecursive()
 
 @click.command()
 @click.argument('role')
 @click.argument('instance')
 def showparents(role,instance):
-    ays=j.atyourservice.getService(role,instance)
+    ays=atyourservice.getService(role,instance)
     out="parents:\n"
     for parent in ays.parents:
         out+="- %s\n"%parent
@@ -139,14 +170,14 @@ def showparents(role,instance):
 @click.option('--instance', default='')
 def list(role, instance):
     print("Installed services:")
-    services = j.atyourservice.findServices(role=role, instance=instance)
+    services = atyourservice.findServices(role=role, instance=instance)
     for s in sorted(services, key=lambda service: service.role):
         print("%s!%s" % (s.role, s.instance))
 
 @click.command()
 @click.option('--action', '-a', default=None)
 def printlog(action):
-    action_name, out = j.atyourservice.alog.getActionOuput(action)
+    action_name, out = atyourservice.alog.getActionOuput(action)
     print("Output of last action: %s\n" % action_name)
     print(out)
 
@@ -154,7 +185,7 @@ def printlog(action):
 @click.option('--token', '-t', prompt='Please enter the token for your bot', help="Telegram bot token. talk to @BotFather to get one.")
 @click.option('--repo', '-r', help="Directory where to store the projects", default='/opt/code/telegram-projects')
 def bot(token, repo):
-    bot = j.atyourservice.telegramBot(token, start=True)
+    bot = atyourservice.telegramBot(token, start=True)
 
 
 @click.command()
@@ -163,29 +194,46 @@ def destroy():
     reset in current ays repo all services & recipe's
     """
     j.actions.resetAll()
-    j.atyourservice.destroy(False)
-    
-@click.command()
-@click.argument('debug')
-def debug(debug):
-    """
-    put atyourservice in debug mode (option 1 or 0)
-    """
-    debug=0
-    if debug in [1,"1",True,"true","yes","Y","y"]:
-        debug=1
-    j.core.db.set("atyourservice.debug",debug)
-    if debug==1:
-        print ("AtYourService is now in debug mode")
-    else:
-        print ("AtYourService is now in production mode")
+    atyourservice.destroy(False)
 
-cli.add_command(new)
+@click.command()
+@click.argument('cmd')
+@click.option('--name', '-n', help="Name of test.", default='main')
+@click.option('--message', '-m', help="Message as used in e.g. pull/push.", default='unknown')
+def test(cmd,name,message):
+    """
+    cmds are
+     - doall
+     - push
+     - pull
+    """
+    tester=j.atyourservice.getTester(name)
+    if cmd=="doall":
+        tester.doall()        
+    elif cmd=="push":
+        tester.gitpush(message=message)
+    elif cmd=="pull":
+        tester.gitpull(message=message)
+
+@click.command()
+@click.option('--branch', '-b', help="Name of branch, can be used in pull request to do change mgmt.", default='master')
+@click.option('--message', '-m', help="Message as used in e.g. pull/push.", default='')
+@click.option('--push','-p', default=False,  is_flag=True,help='if True then will push changes to git repo.')
+def commit(message,branch="master",push=False):
+    """
+    """
+    atyourservice.commit(message,branch,push=push)
+
+cli.add_command(simulate)
+cli.add_command(test)
+cli.add_command(setstate)
+cli.add_command(commit)
+# cli.add_command(new)
 cli.add_command(destroy)
 cli.add_command(init)
-cli.add_command(apply)
+# cli.add_command(apply)
 cli.add_command(install)
-cli.add_command(uninstall)
+# cli.add_command(uninstall)
 cli.add_command(do)
 cli.add_command(showproducers)
 cli.add_command(showparents)
@@ -193,7 +241,7 @@ cli.add_command(showactions)
 cli.add_command(list)
 cli.add_command(printlog)
 cli.add_command(bot)
-cli.add_command(debug)
+# cli.add_command(debug)
 
 # print (sys.excepthook)
 

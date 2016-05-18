@@ -3,6 +3,7 @@ from Base import Base
 from Base import replacelabels
 import re
 from github.GithubObject import NotSet
+from Milestone import RepoMilestone
 
 re_story_name = re.compile('.+\((.+)\)$')
 
@@ -16,14 +17,12 @@ class Issue(Base):
         self._githubObj = githubObj
         if githubObj is not None:
             self.load()
-        #self.todo
+        # self.todo
 
     @property
     def api(self):
         if self._githubObj is None:
-            from IPython import embed
-            print("DEBUG NOW get api")
-            embed()
+            self._githubObj = self.repo.api.get_issue(self.number)
         return self._githubObj
 
     @property
@@ -52,6 +51,11 @@ class Issue(Base):
     @property
     def body(self):
         return self.ddict["body"]
+
+    @body.setter
+    def body(self, val):
+        self.ddict["body"] = val
+        self.api.edit(body=self.ddict['body'])
 
     @property
     def time(self):
@@ -105,6 +109,10 @@ class Issue(Base):
     @state.setter
     def state(self, val):
         return self._setLabels(val, "state")
+
+    @property
+    def isOpen(self):
+        return self.ddict['open'] == True
 
     @property
     def type(self):
@@ -241,6 +249,7 @@ class Issue(Base):
         self._ddict["id"] = self.api.id
         self._ddict["url"] = self.api.html_url
         self._ddict["number"] = self.api.number
+        self._ddict['open'] = self.api.state == 'open'
 
         self._ddict["assignee"] = self.repo.client.getUserLogin(
             githubObj=self.api.assignee)
@@ -254,12 +263,12 @@ class Issue(Base):
         self._ddict["time"] = j.data.time.any2HRDateTime(
             [self.api.last_modified, self.api.created_at])
 
-        print("LOAD:%s %s" % (self.repo.fullname, self._ddict["title"]))
+        self.logger.debug("LOAD:%s %s" % (self.repo.fullname, self._ddict["title"]))
 
         if self.api.milestone is None:
             self._ddict["milestone"] = ""
         else:
-            ms = self.repo.client.getMilestone(githubObj=self.api.milestone)
+            ms = RepoMilestone(repo=self.repo, githubObj=self.api.milestone)
             self._ddict["milestone"] = "%s:%s" % (ms.number, ms.title)
 
     def getMarkdown(self, priotype=True):
@@ -268,9 +277,12 @@ class Issue(Base):
         md.addMDHeader(4, self.title)
         if self.body is not None and self.body.strip() != "":
             md.addMDBlock(self.body)
+
+        md.addMDHeader(5, "meta")
+
+        t = md.addMDTable()
         h = [self.state, "[%s](%s)" % (self.number, self.url)]
         rows = []
-        t = md.addMDTable()
         t.addHeader(h)
         t.addRow(["milestone", self.milestone])
         t.addRow([self.priority, self.type])
@@ -290,62 +302,62 @@ class Issue(Base):
 
         return md
 
-    def _loadMD(self,content):
-        md=j.data.markdown.getDocument(content)
-        title=md.items[0]
-        self._ddict["title"]=title.title
-        body=md.items[1]
-        self._ddict["body"]=body.text
-        table=md.items[2]
-        state,tmp=table.header
-        #first label
-        self._ddict["labels"]=["state_%s"%state]
+    def _loadMD(self, content):
+        md = j.data.markdown.getDocument(content)
+        title = md.items[0]
+        self._ddict["title"] = title.title
+        body = md.items[1]
+        self._ddict["body"] = body.text
+        table = md.items[2]
+        state, tmp = table.header
+        # first label
+        self._ddict["labels"] = ["state_%s" % state]
 
-        prio,ttype=table.rows[1]
-        self._ddict["labels"].append("priority_%s"%prio)
-        self._ddict["labels"].append("type_%s"%ttype)
+        prio, ttype = table.rows[1]
+        self._ddict["labels"].append("priority_%s" % prio)
+        self._ddict["labels"].append("type_%s" % ttype)
 
-        self._ddict["comments"]=[]
+        self._ddict["comments"] = []
 
-        for row in  table.rows:
-            if row[0]=="milestone":
-                ms=row[1]
-                if ms!=".":
-                    self._ddict["milestone"]=ms
-            elif row[0]=="assignee":
-                assignee=row[1]
-                if assignee!=".":
-                    self._ddict["assignee"]=assignee
-            elif row[0]=="time":
-                ttime=row[1]
-                if ttime!=".":
-                    self._ddict["time"]=ttime
+        for row in table.rows:
+            if row[0] == "milestone":
+                ms = row[1]
+                if ms != ".":
+                    self._ddict["milestone"] = ms
+            elif row[0] == "assignee":
+                assignee = row[1]
+                if assignee != ".":
+                    self._ddict["assignee"] = assignee
+            elif row[0] == "time":
+                ttime = row[1]
+                if ttime != ".":
+                    self._ddict["time"] = ttime
 
         for i in range(3):
             md.items.pop(0)
 
-        state="title"
-        comment={}
+        state = "title"
+        comment = {}
         for item in md.items:
-            if state=="title":
-                comment={}
-                state="body"
+            if state == "title":
+                comment = {}
+                state = "body"
                 continue
-            if state=="body":
-                comment["body"]=item.text
-                state="table"
+            if state == "body":
+                comment["body"] = item.text
+                state = "table"
                 continue
-            if state=="table":
-                assignee=item.header[0]
-                url=item.header[1]
-                ttime=item.rows[0][1]
-                id=url.split("]",1)[0].strip("[")
-                comment["id"]=int(id)
-                url=url.split("]",1)[1].strip("()")
-                comment["url"]=url
-                comment["time"]=ttime
-                state="title"
-                #now add the comment
+            if state == "table":
+                assignee = item.header[0]
+                url = item.header[1]
+                ttime = item.rows[0][1]
+                id = url.split("]", 1)[0].strip("[")
+                comment["id"] = int(id)
+                url = url.split("]", 1)[1].strip("()")
+                comment["url"] = url
+                comment["time"] = ttime
+                state = "title"
+                # now add the comment
                 self._ddict["comments"].append(comment)
                 continue
 
@@ -353,7 +365,7 @@ class Issue(Base):
     def todo(self):
         if "_todo" not in self.__dict__:
             todo = []
-            if self.body!=None:                
+            if self.body is not None:
                 for line in self.body.split("\n"):
                     if line.startswith("!! "):
                         todo.append(line.strip().strip("!! "))
@@ -387,8 +399,21 @@ class Issue(Base):
 
         return ''
 
+    @property
+    def tasks(self):
+        """
+        Only works for issue that is a story.
+        returns the tasks linked to this story.
+        """
+        tasks = []
+        if self.isStory:
+            for issue in self.repo.tasks:
+                if issue.title.startswith(self.story_name):
+                    tasks.append(issue)
+        return tasks
+
     def move_to_repo(self, repo):
-        print ("%s: move to repo:%s"%(self,repo))
+        self.logger.info("%s: move to repo:%s" % (self, repo))
         body = "Issue moved from %s\n\n" % self.api.url
         for line in self.api.body.splitlines():
             if line.startswith("!!") or line.startswith(
@@ -404,7 +429,7 @@ class Issue(Base):
         self.api.edit(state='close')
 
     def _create_comments_backlog(self):
-        out = "## backlog comments of '%s' (%s)\n\n" % (self.title, self.url)
+        out = "### backlog comments of '%s' (%s)\n\n" % (self.title, self.url)
         for comment in self.api.get_comments():
             if comment.body.find("!! move") != -1:
                 continue
@@ -419,61 +444,92 @@ class Issue(Base):
         """
         If this issue is a story, add a link to a subtasks
         """
-        print ("%s: add task:%s"%(self,task))
         if self.repo.api.id != task.repo.api.id:
-            raise j.exceptions.Input(
-                "The task and the story have to be in the same Repository.")
+            j.exceptions.Input("The task and the story have to be in the same Repository.")
+            return
 
         if not self.isStory:
-            raise j.exceptions.Input("This issue is not a story")
+            j.exceptions.Input("This issue is not a story")
+            return
 
-        task_line_found = False
-        new_body = ''
-        for line in self.api.body.splitlines():
-            if line.startswith('### Tasks:'):
-                task_line_found = True
-                tasks = line[len('### Tasks:'):].split(',')
-                tasks = [task.strip() for task in tasks]
-                if "#%d" % task.api.number not in tasks:
-                    line += " , #%d " % task.api.number
-            new_body += line if line != '' else '\n\n'
+        task_table_found = False
+        change = False
+        doc = j.data.markdown.getDocument(self.body)
+        i = 0
 
-        if not task_line_found:
-            new_body = '%s\n\n### Tasks: #%d' % (
-                self.api.body, task.api.number)
+        for item in doc.items:
+            if change is True:
+                return
+            if item.type == 'table':
+                task_table_found = True
+                table = item
+                existing_tasks = [r[2] for r in table.rows]
+                # add task is not in table yet
+                if not "#%d" % task.number in existing_tasks:
+                    self.logger.info("%s: add task:%s" % (self, task))
+                    change = True
+                    table.addRow([task.state, task.title, "#%s" % task.number])
+                    break
+                else:
+                    # update task status if needed
+                    for row in table.rows:
+                        state = 'open' if task.isOpen else 'closed'
+                        if row[2] == '#%s' % task.number and row[0] != state:
+                            self.logger.info("%s: update task:%s" % (self, task))
+                            change = True
+                            row[0] = state
+                            row[1] = task.title
+                            break
 
-        #@todo (1) dirty hack why is this required
-        # while "\n\n\n" in new_body:
-        #     new_body=new_body.replace("\n\n","\n")
+        if not task_table_found:
+            change = True
+            table = doc.addMDTable()
+            table.addHeader(['status', 'title', 'link'])
+            table.addRow([task.state, task.title, "#%s" % task.number])
 
-        self.api.edit(body=new_body)
-            
+        if change:
+            self.ddict["body"] = str(doc)
+            self.api.edit(body=str(doc))
 
     def link_to_story(self, story):
         """
         If this issue is a task from a story, add link in to the story in the description
         """
-        print ("%s: link to story:%s"%(self,story))
         if self.repo.api.id != story.repo.api.id:
-            raise j.exceptions.Input(
-                "The task and the story have to be in the same Repository.")
+            raise j.exceptions.Input("The task (%s) and the story (%s) have to be in the same Repository." % (self.title, story.task))
+            # return
 
         if not self.isTask:
-            raise j.exceptions.Input("This issue is not a task")
+            raise j.exceptions.Input("This issue (%s) is not a task" % self.title)
+            # return
 
+        if self.body=="" or self.body==None:
+            return
+
+        doc = j.data.markdown.getDocument(self.body)
+
+        change = False
         story_line_found = False
-        new_body = ''
-        for line in self.api.body.splitlines():
-            if line.startswith('### Part of Story:'):
+        for item in doc.items:
+            if item.type == 'header' and item.level == 3 and item.title.find("Part of Story") != -1:
                 story_line_found = True
-                line = '### Part of Story: #%d' % (story.api.number)
-            new_body += line if line != '' else '\n\n'
+                story_number = item.title.lstrip('Part of Story: ')
+                if story_number != '#%d' % story.number:
+                    item.title = 'Part of Story: #%s' % story.number
+                    change = True
+                break
 
         if not story_line_found:
-            new_body = '### Part of Story: #%d\n\n%s' % (
-                story.api.number, self.api.body)
+            change = True
+            doc.addMDHeader(3, 'Part of Story: #%s' % story.number)
+            # make sure it's on the first line of the comment
+            title = doc.items.pop(-1)
+            doc.items.insert(0, title)
 
-        self.api.edit(body=new_body)
+        if change:
+            self.logger.info("%s: link to story:%s" % (self, story))
+            self.ddict["body"] = str(doc)
+            self.api.edit(body=str(doc))
 
     def __str__(self):
         return "issue:%s" % self.title

@@ -65,8 +65,13 @@ class HRDItem():
         self.value=value
         if data=="" or data==None:
             self.data=value
+            if j.data.types.list.check(value):
+                self.ttype="list"
+            elif j.data.types.dict.check(value):
+                self.ttype="dict"
         else:
             self.data=data
+
         if self.ttype == 'str':
             if not value.startswith("'"):
                 self.value = "'%s'" % value
@@ -225,6 +230,9 @@ class HRD(HRDBase):
     def set(self,key,value="",persistent=True,comments="",temp=False,ttype=None,data=""):
         """
         """
+        # if key=="milestone.category" and value!="":
+        #     print(value)
+        #     from pudb import set_trace; set_trace() 
         key=key.lower()
         # print "set:%s %s |%s|"%(key,value,data)
         if self.prefixWithName:

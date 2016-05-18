@@ -48,17 +48,37 @@ class BtrfsExtension(SALObject):
         """
         self.__btrfs("subvolume", "snapshot -r", path, dest)
 
-    def subvolumeCreate(self, path, name):
+    def subvolumeCreate(self, path):
         """
-        Create a subvolume in <dest> (or the current directory if not passed).
+        Create a subvolume in path
         """
-        self.__btrfs("subvolume", 'create', j.tools.path.get(path).joinpath(name))
+        if not self.subvolumeExists(path):
+            self.__btrfs("subvolume", 'create', path)
 
     def subvolumeDelete(self, path):
         """
         full path to volume
         """
         self.__btrfs("subvolume", "delete", path)
+
+    def subvolumeExists(self, path):
+        if not self._executor.cuisine.core.dir_exists(path):
+            return False
+
+        rc,res=self._executor.execute("btrfs subvolume list %s"%path  ,checkok=False,die=False) 
+
+        if rc>0:
+            if res.find("can't access")!=-1:
+                if self._executor.cuisine.core.dir_exists(path):
+                    raise j.exceptions.RuntimeError("Path %s exists put is not btrfs subvolume, cannot continue."%path)        
+                else:
+                    return False
+            else:
+                raise j.exceptions.RuntimeError("BUG:%s"%res)
+
+        return True
+        
+
 
     def subvolumeList(self, path, filter=""):
         """
@@ -70,6 +90,8 @@ class BtrfsExtension(SALObject):
             item = m.groupdict()
             path2 = path + "/" + item["name"]
             path2 = path2.replace("//", "/")
+            if item["name"].startswith("@"):
+                continue
             if filter != "":
                 if path2.find(filter) == -1:
                     continue

@@ -93,7 +93,7 @@ class Dirs(object):
         txt=txt.replace("$codedir",self.codeDir)
         txt=txt.replace("$vardir",self.varDir)
         txt=txt.replace("$cfgDir",self.cfgDir)
-        txt=txt.replace("$hrdDir",self.ays)
+        # txt=txt.replace("$hrdDir",self.ays)
         txt=txt.replace("$bindir",self.binDir)
         txt=txt.replace("$logdir",self.logDir)
         txt=txt.replace("$tmpdir",self.tmpDir)
@@ -126,14 +126,14 @@ class Dirs(object):
             pass
 
 
-    @property
-    def ays(self):
-        if self._ays!=None:
-            return self._ays
-        path = j.atyourservice.basepath
-        self._ays= j.sal.fs.joinPaths(path,"services")
-        j.sal.fs.createDir(self._ays)
-        return self._ays
+    # @property
+    # def ays(self):
+    #     if self._ays!=None:
+    #         return self._ays
+    #     path = j.atyourservice.basepath
+    #     self._ays= j.sal.fs.joinPaths(path,"services")
+    #     j.sal.fs.createDir(self._ays)
+    #     return self._ays
 
 
     def _getParent(self, path):

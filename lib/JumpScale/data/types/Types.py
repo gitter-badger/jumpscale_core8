@@ -25,6 +25,8 @@ class Types():
         self.ipport=IPPort()
         self.duration=Duration()
         self.tel=Tel()
+        self.yaml=YAML()
+        self.json=JSON()
         self.email=Email()
         self.date=Date()
 
@@ -43,6 +45,7 @@ class Types():
         - multiline
         - list
         - dict
+        - yaml
         - set
         - guid
         - duration e.g. 1w, 1d, 1h, 1m, 1
@@ -72,6 +75,10 @@ class Types():
             return self.list
         elif ttype =="dict":
             return self.dict
+        elif ttype =="yaml":
+            return self.yaml
+        elif ttype =="json":
+            return self.json
         elif ttype =="set":
             return self.set
         elif ttype =="guid":

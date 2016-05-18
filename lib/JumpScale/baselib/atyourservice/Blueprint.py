@@ -11,12 +11,15 @@ class Blueprint(object):
     """
     """
 
-    def __init__(self, path):
+    def __init__(self, aysrepo,path):
+        self.aysrepo=aysrepo
+        
         self.path=path
         self.models=[]
         self._contentblocks=[]
         content=""
         content0=j.sal.fs.fileGetContents(path)
+        
         nr=0
         #we need to do all this work because the yaml parsing does not maintain order because its a dict
         for line in content0.split("\n"):
@@ -38,32 +41,14 @@ class Blueprint(object):
 
         self.content=content0
 
-    def loadrecipes(self):
+
+    def load(self,role=""):
         for model in self.models:
             if model!=None:
                 for key,item in model.items():
                     if key.find("__")==-1:
                         raise j.exceptions.Input("Key in blueprint is not right format, needs to be $aysname__$instance, found:'%s'"%key)
                     aysname,aysinstance=key.split("__",1)
-                    if not aysname.startswith('blueprint.'):
-                        blueaysname = 'blueprint.%s' % aysname
-                        try:
-                            j.atyourservice.getRecipe(name=blueaysname)
-                            continue
-                        except j.exceptions.Input:
-                            pass
-                    try:
-                        j.atyourservice.getRecipe(name=aysname)
-                    except Exception as e:
-                        e.source=" Try to load recipe for %s in blueprint %s."%(key,self.path)
-                        raise e
-
-    def execute(self, role="", instance=""):
-        for model in self.models:
-            if model is not None:
-                for key, item in model.items():
-                    # print ("blueprint model execute:%s %s"%(key,item))
-                    aysname, aysinstance = key.split("__", 1)
 
                     if aysname.find(".") != -1:
                         rolefound, _ = aysname.split(".", 1)
@@ -73,18 +58,21 @@ class Blueprint(object):
                     if role != "" and role != rolefound:
                         continue
 
-                    if instance != "" and instance != aysinstance:
-                        continue
+                    recipe=self.aysrepo.getRecipe(aysname,die=False)
 
-                    if not aysname.startswith('blueprint.'):
-                        blueaysname = 'blueprint.%s' % aysname
-                        try:
-                            r = j.atyourservice.getRecipe(name=blueaysname)
-                        except j.exceptions.Input:
-                            r = j.atyourservice.getRecipe(name=aysname)
-                    yaml = model['%s__%s' % (aysname, aysinstance)]
-                    aysi = r.newInstance(instance=aysinstance, args=item, yaml=yaml)
-                    aysi.init()
+                    if recipe==None:
+                        
+                        #check if its a blueprintays, if yes then template name is different
+                        aystemplate_name=aysname
+                        if not aysname.startswith('blueprint.'):
+                            blueaysname = 'blueprint.%s' % aysname
+                            if self.aysrepo.existsTemplate(blueaysname):
+                                aystemplate_name=blueaysname
+
+                        recipe=self.aysrepo.getRecipe(aystemplate_name) #will load recipe if it doesn't exist yet
+                    
+                    aysi = recipe.newInstance(instance=aysinstance, args=item)
+
 
     def _add2models(self,content,nr):
         #make sure we don't process double

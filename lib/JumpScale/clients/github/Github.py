@@ -3,6 +3,7 @@ from JumpScale.tools.zip.ZipFile import ZipFile
 
 from Repository import GithubRepo
 from User import User
+from Issue import Issue
 
 
 try:
@@ -27,12 +28,15 @@ class GitHubFactory(object):
             self._clients[secret]= GitHubClient(secret)
         return self._clients[secret]
 
+    def getIssueClass(self):
+        return Issue
+
 class GitHubClient():
 
     def __init__(self, secret):
         self.api = github.Github(secret)
         self.users = {}
-        self.repos = {}        
+        self.repos = {}
 
     def getRepo(self, fullname):
         """
@@ -60,4 +64,3 @@ class GitHubClient():
                 user = User(self, githubObj=githubObj)
                 self.users[githubObj.login] = user
             return self.users[githubObj.login]
-

@@ -47,6 +47,10 @@ class PlatformTypes():
         self._platformParents["arch64"]=["arch","linux64"]
         self._platformParents["darwin32"]=["darwin","unix32"]
         self._platformParents["darwin64"]=["darwin","unix64"]
+        self._platformParents["debian"]=["ubuntu"]
+        self._platformParents["debian32"]=["debian","linux32"]
+        self._platformParents["debian64"]=["debian","linux64"]
+
 
     @property
     def myplatform(self):
@@ -142,6 +146,7 @@ class PlatformType():
             self._osname=self._osname0.lower()
             if self._osname not in ["darwin"]:
                 rc, out = self.executor.cuisine.core.run("lsb_release -a",showout=False, replaceArgs=False, die=False,action=False)
+
                 if rc != 0:
                     packagemanagers = {'pacman': 'arch', 'apt-get': 'ubuntu', 'yum': 'fedora'}
                     for packagemanager, osname in packagemanagers.items():
@@ -151,6 +156,8 @@ class PlatformType():
                             return self._osname
                 if "ubuntu" in out.lower():
                     self._osname="ubuntu"
+                elif "debian" in out.lower():
+                    self._osname="debian"
                 elif 'arch' in out.lower():
                     self._osname="arch"
                 else:

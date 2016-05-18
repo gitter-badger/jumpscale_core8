@@ -225,7 +225,7 @@ class Time_(object):
         except:
             raise ValueError ("Date needs to be formatted as Needs to be formatted as 16/06/1988 %H:%M:%S, also check if date is valid, now format = %s" % hrdatetime)
 
-    def any2epoch(self,val):
+    def any2epoch(self,val, in_list=False):
         """
         if list will go item by item until not empty,0 or None
         if int is epoch
@@ -234,7 +234,7 @@ class Time_(object):
         """
         if j.data.types.list.check(val):
             for item in val:
-                res= self.any2epoch(item)
+                res= self.any2epoch(item, in_list=True)
                 if res!=0:
                     return res
             return 0
@@ -253,7 +253,10 @@ class Time_(object):
                 pass
         if isinstance (val,datetime.datetime):
             return self.pythonDateTime2Epoch(val)
-        raise j.exceptions.Input("Could not define format of time value, needs to be int, human readable time, list or python datetime obj.")
+        if not in_list:
+            raise j.exceptions.Input("Could not define format of time value, needs to be int, human readable time, list or python datetime obj.")
+        else:
+            return 0
 
     def any2HRDateTime(self,val):
         """
