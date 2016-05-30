@@ -26,6 +26,7 @@ import inspect
 
 
 class InstallTools():
+
     def __init__(self,debug=False):
 
         self.TMP=tempfile.gettempdir().replace("\\","/")
@@ -42,7 +43,11 @@ class InstallTools():
             self.VARDIR="%s/optvar"%os.environ["HOME"]
 
         elif sys.platform.startswith("linux"):
-            self.BASE=os.environ.get("JSBASE", "/opt/jumpscale8")
+            print("WE ARE HERE ", os.environ)
+            self.BASE=os.environ.get("JSBASE", None)
+            # if not self.BASE:
+            #     self.BASE = '/opt/jumpscale8' if not hasattr(j, 'application') else j.application.config.get('system.paths.base')
+            #     print("************ BASE >>>>> ", self.BASE)
             self.TYPE="LINUX"
             self.VARDIR="/optvar/"
             # self.TYPE=platform.linux_distribution(full_distribution_name=0)[0].upper()
@@ -1463,12 +1468,12 @@ class InstallTools():
         returns list of paths
         """
         if "SSH_AUTH_SOCK" not in os.environ:
-            self._initSSH_ENV(True)        
+            self._initSSH_ENV(True)
         cmd = "ssh-add -L"
         rc, out  = self.execute(cmd,False,False,die=False)
         if rc!=0:
             if rc==1 and out.find("The agent has no identities")!=-1:
-                return []            
+                return []
             raise RuntimeError("error during listing of keys :%s" % err)
         if keyIncluded:
             return [(item.split(" ")[2],item.split(" ")[1]) for item in out.splitlines()]
@@ -1580,7 +1585,7 @@ class InstallTools():
         res=[item for item in self.execute("ps aux|grep ssh-agent",False,False)[1].split("\n") if item.find("grep ssh-agent")==-1]
         res=[item for item in res if item.strip()!=""]
         res=[item for item in res if item[-2:]!="-l"]
-        
+
         if len(res)>1:
             print ("more than 1 ssh-agent, will kill all")
             killfirst=True
@@ -1642,6 +1647,7 @@ class InstallTools():
         if rc==2:#>0 and err.find("not open a connection")!=-1:
             #no ssh-agent found\
             print(result)
+            print(err)
             raise RuntimeError("Could not connect to ssh-agent, this is bug, ssh-agent should be loaded by now")
         elif rc==1:
             #no keys but agent loaded
@@ -2049,10 +2055,7 @@ class Installer():
         # else:
         #     PYTHONVERSION = "3.5"
 
-        if base!="":
-            os.environ["JSBASE"]=base
-        else:
-            os.environ["JSBASE"]=do.BASE
+        os.environ["JSBASE"]=do.BASE
 
         if CODEDIR!="":
             os.environ["CODEDIR"]=CODEDIR
@@ -2187,12 +2190,14 @@ class Installer():
 
 
     def writeenv(self,basedir="",insystem=False,CODEDIR="",vardir="",die=True, SANDBOX=0):
-        if basedir=="":
-            # self.BASE
-            try:
-                basedir=do.getParent(do.getParent(do.getParent(inspect.getabsfile(do.executeCmds))))
-            except Exception as e:
-                raise RuntimeError("Please specify basedir, can not find.")
+        basedir=do.BASE
+        os.environ['JSBASE']=basedir
+	# if basedir=="":
+        #    # self.BASE
+        #    try:
+        #        basedir=do.getParent(do.getParent(do.getParent(inspect.getabsfile(do.executeCmds))))
+        #    except Exception as e:
+        #        raise RuntimeError("Please specify basedir, can not find.")
 
         if basedir=="":
             raise RuntimeError("basedir cannot be empty")
@@ -2379,6 +2384,7 @@ exec $JSBASE/bin/python3 -q "$@"
 
         C2_insystem="""#!/bin/bash
 # set -x
+source $base/env.sh
 exec python3 -q "$@"
         """
 
@@ -2396,6 +2402,7 @@ exec python3 -q "$@"
             else:
                 #in system
                 dest="/usr/local/bin/jspython"
+                C2_insystem = C2.replace('$base', basedir)
                 do.writeFile(dest,C2_insystem)
             do.chmod(dest, 0o770)
 
@@ -2697,3 +2704,4 @@ do.installer=Installer()
 
 if __name__ == '__main__':
     do.installer.installJS()
+
