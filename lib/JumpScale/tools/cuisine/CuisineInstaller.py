@@ -118,12 +118,13 @@ class CuisineInstaller:
         start = j.data.time.epoch
         timeout = 30
         while start + timeout > j.data.time.epoch:
-            if not self.cuisine.core.file_exists('/opt/jumpscale8/bin/jspython'):
+            basejs8 = j.dirs.base
+            if not self.cuisine.core.file_exists('{basedir}bin/jspython'.format(basedir=basejs8)):
                 time.sleep(2)
             else:
-                self.cuisine.core.file_link('/opt/jumpscale8/bin/jspython', '/usr/local/bin/jspython')
-                self.cuisine.core.file_link('/opt/jumpscale8/bin/js', '/usr/local/bin/js')
-                self.cuisine.bash.include('/opt/jumpscale8/env.sh')
+                self.cuisine.core.file_link('{basedir}bin/jspython'.format(basedir=basejs8), '/usr/local/bin/jspython')
+                self.cuisine.core.file_link('{basedir}bin/js'.format(basedir=basejs8), '/usr/local/bin/js')
+                self.cuisine.bash.include('{basedir}env.sh'.format(basedir=basejs8))
                 break
 
         print ("* re-login into your shell to have access to js, because otherwise the env arguments are not set properly.")

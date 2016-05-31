@@ -44,7 +44,8 @@ class CuisineBuilder:
         python : do you want to sandbox python too ? if you have segfault after trying sandboxing python, re run with python=False
         """
         # jspython is generated during install,need to copy it back into /opt before sandboxing
-        self.cuisine.core.file_copy('/usr/local/bin/jspython', '/opt/jumpscale8/bin')
+        base=j.dirs.base
+        self.cuisine.core.file_copy('/usr/local/bin/jspython', '{basedir}bin'.format(basedir=base))
 
         # clean lib dir to avoid segfault during sandboxing
         self.cuisine.core.dir_remove('%s/*' % self.cuisine.core.dir_paths['libDir'])

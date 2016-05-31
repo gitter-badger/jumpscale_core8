@@ -74,9 +74,10 @@ class Controller:
         cfg = j.data.serializer.toml.loads(C)
 
         cfgDir = self.cuisine.core.dir_paths['cfgDir']
-        cfg["events"]["python_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
-        cfg["processor"]["python_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
-        cfg["jumpscripts"]["python_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/extensions:/opt/jumpscale8/lib")
+        base=j.dirs.base
+        cfg["events"]["python_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/extensions:{basedir}/lib".format(basedir=base))
+        cfg["processor"]["python_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/extensions:/{basedir}lib".format(basedir=base))
+        cfg["jumpscripts"]["python_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/extensions:{basedir}lib".format(basedir=base))
         cfg["jumpscripts"]["settings"]["jumpscripts_path"] = self.cuisine.core.joinpaths(cfgDir, "/controller/jumpscripts")
         C = j.data.serializer.toml.dumps(cfg)
 

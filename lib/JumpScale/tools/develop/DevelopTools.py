@@ -14,21 +14,22 @@ class MyFSEventHandler(FileSystemEventHandler):
             changedfile = event.src_path
             for node in j.tools.develop.nodes:
                 if node.cuisine.core.isJS8Sandbox:
+                    basejs8=j.dirs.base
                     sep = "jumpscale_core8/lib/JumpScale/"
                     sep_cmds = "jumpscale_core8/shellcmds/"
                     if changedfile.find(sep) != -1:
                         dest0 = changedfile.split(sep)[1]
-                        dest = "/opt/jumpscale8/lib/JumpScale/%s" % (dest0)
+                        dest = "{basedir}lib/JumpScale/%s".format(basedir=basejs8) % (dest0)
                     elif changedfile.find(sep_cmds) != -1:
                         dest0 = changedfile.split(sep_cmds)[1]
-                        dest = "/opt/jumpscale8/bin/%s" % (dest0)
+                        dest = "{basedir}bin/%s".format(basedir=basejs8) % (dest0)
                     elif changedfile.find("/.git/") != -1:
                         return
                     elif changedfile.find("/__pycache__/") != -1:
                         return
                     elif j.sal.fs.getBaseName(changedfile) in ["InstallTools.py", "ExtraTools.py"]:
                         base = j.sal.fs.getBaseName(changedfile)
-                        dest = "/opt/jumpscale8/lib/JumpScale/%s" % (base)
+                        dest = "{basedir}/ib/JumpScale/%s".format(basedir=basejs8) % (base)
                     else:
                         destpart = changedfile.split("jumpscale/", 1)[-1]
                         dest = "/opt/code/%s" % destpart
@@ -246,6 +247,7 @@ class DevelopToolsFactory:
         @param ask=True means ask which repo's to sync (will get remembered in redis)
 
         """
+        basejs8=j.dirs.base
         if ask or j.core.db.get("debug.codepaths") == None:
             path = j.dirs.codeDir + "/github/jumpscale"
             if j.sal.fs.exists(path):
@@ -270,17 +272,17 @@ class DevelopToolsFactory:
                         dest = "root@%s:/opt/code/%s" % (node.addr, destpart)
 
                     if destpart == "jumpscale_core8" and node.cuisine.core.isJS8Sandbox:
-                        dest = "root@%s:/opt/jumpscale8/lib/JumpScale/" % node.addr
+                        dest = "root@%s:{basedir}lib/JumpScale/".format(basedir=basejs8) % node.addr
                         source2 = source + "/lib/JumpScale/"
 
                         j.sal.fs.copyDirTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=True,rsyncdelete=rsyncdelete)
 
                         source2 = source + "/install/InstallTools.py"
-                        dest = "root@%s:/opt/jumpscale8/lib/JumpScale/InstallTools.py" % node.addr
+                        dest = "root@%s:{basedir}lib/JumpScale/InstallTools.py".format(basedir=basejs8) % node.addr
                         j.sal.fs.copyDirTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                         source2 = source + "/install/ExtraTools.py"
-                        dest = "root@%s:/opt/jumpscale8/lib/JumpScale/ExtraTools.py" % node.addr
+                        dest = "root@%s:{basedir}lib/JumpScale/ExtraTools.py".format(basedir=basejs8) % node.addr
                         j.sal.fs.copyDirTree(source2, dest, ignoredir=['.egg-info', '.dist-info', '__pycache__', ".git"], rsync=True, ssh=True, sshport=node.port, recursive=False)
 
                     else:
