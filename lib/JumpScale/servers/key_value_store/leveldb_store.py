@@ -74,7 +74,6 @@ class LevelDBKeyValueStore(KeyValueStoreBase):
             self.categories[category]=True
             self.set("dbsystem", "categories", self.categories)
         categoryKey = self._getCategoryKey(category, key)
-        # j.db.tlog.set(category,key,value)
         self.dbclient.setb(categoryKey, self.serialize(value))
 
     def get(self, category, key):
@@ -88,12 +87,10 @@ class LevelDBKeyValueStore(KeyValueStoreBase):
             self.set("dbsystem", "categories", self.categories)
         categoryKey = self._getCategoryKey(category, key)
         #create transactionlog
-        # j.db.tlog.set(category,key,value)
         self.dbclient.set(categoryKey, self.serialize(value))
 
     def delete(self, category, key):
         categoryKey = self._getCategoryKey(category, key)
-        # j.db.tlog.delete(category,key,value)
         self.dbclient.delete(categoryKey)
 
     def exists(self, category, key):

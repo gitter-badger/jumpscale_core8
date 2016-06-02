@@ -59,11 +59,10 @@ class AmazonProvider:
 
         if not host:
             raise j.exceptions.RuntimeError('Could not find machine: %s' % machine_name)
-        rapi = j.remote.cuisine.api
-        rapi.connect(host, user='ubuntu')
+        rapi = j.tools.cuisine.get(j.tools.executor.get(host, login='ubuntu'))
         if sudo:
-            return rapi.sudo(command)
-        return rapi.run(command)
+            return rapi.core.sudo(command)
+        return rapi.core.run(command)
 
     def import_keypair(self, name, key_file):
         self._client.ex_import_keypair(name, key_file)

@@ -73,9 +73,6 @@ class QSocketServerHandler(socketserver.BaseRequestHandler):
         return data[0:size]
 
     def senddata(self, data):
-        # message=j.core.messagehandler.data2Message(20,data)
-        # for i in range(1000):
-        # res=self._send(message)
         data = "A" + struct.pack("I", len(data)) + data
         self.socket.sendall(data)
 

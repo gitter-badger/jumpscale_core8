@@ -38,8 +38,8 @@ class CloudSystemFS:
 
     """
     set of library actions which are used in cloud
-    these are different from j.system.fs in the fact they support more generic url's and are specific to moving data around on a cloud/network level
-    extension which is linked onto j.cloud.system.fs.
+    these are different from j.sal.fs in the fact they support more generic url's and are specific to moving data around on a cloud/network level
+    extension which is linked onto j.sal.cloudfs.
     """
     def copyFile(self,sourcepath,destinationpath,tempdir=j.dirs.tmpDir):
         """
@@ -54,12 +54,12 @@ class CloudSystemFS:
         """
         # tested scenarios
         #
-        # j.cloud.system.fs.copyFile('ftp://ftp.belnet.be/mirror/ftp.centos.org/HEADER.html',  'cifs://aserver:aserver@localhost/share/testje')
-        # j.cloud.system.fs.copyFile('file:///tmp/src', 'cifs://aserver:aserver@localhost/share')
-        # j.cloud.system.fs.copyFile('file:///tmp/src', 'ftp://localhost/anon/remote-ftp')
-        # j.cloud.system.fs.copyFile('ftp://ftp.belnet.be/mirror/ftp.centos.org/HEADER.html', 'ftp://localhost/anon/remote-ftp')
-        # j.cloud.system.fs.copyFile('file:///mnt/blubje' , 'sftp://aserver:aserver@localhost/home/aserver/Desktop/')
-        # j.cloud.system.fs.copyFile('sftp://aserver:aserver@localhost/home/aserver/Desktop/bub', 'file:///mnt/blubje')
+        # j.sal.cloudfs.copyFile('ftp://ftp.belnet.be/mirror/ftp.centos.org/HEADER.html',  'cifs://aserver:aserver@localhost/share/testje')
+        # j.sal.cloudfs.copyFile('file:///tmp/src', 'cifs://aserver:aserver@localhost/share')
+        # j.sal.cloudfs.copyFile('file:///tmp/src', 'ftp://localhost/anon/remote-ftp')
+        # j.sal.cloudfs.copyFile('ftp://ftp.belnet.be/mirror/ftp.centos.org/HEADER.html', 'ftp://localhost/anon/remote-ftp')
+        # j.sal.cloudfs.copyFile('file:///mnt/blubje' , 'sftp://aserver:aserver@localhost/home/aserver/Desktop/')
+        # j.sal.cloudfs.copyFile('sftp://aserver:aserver@localhost/home/aserver/Desktop/bub', 'file:///mnt/blubje')
         # Determine the object we need to call
         self.logger.info("copyFile: from [%s] to [%s]" % ( sourcepath, destinationpath) )
 
@@ -222,7 +222,7 @@ class CloudSystemFS:
         @type recursive:         boolean
         """
 
-        # Tested: j.cloud.system.fs.importDir('smb://autotest:phun5chU@fileserver.aserver.com/Public/Engineering/vdi/sso_images/SSO_VD', 'file:///tmp/tmp/')
+        # Tested: j.sal.cloudfs.importDir('smb://autotest:phun5chU@fileserver.aserver.com/Public/Engineering/vdi/sso_images/SSO_VD', 'file:///tmp/tmp/')
         self.logger.info("exportDir: from [%s] to [%s]" % (sourcepath, destinationpath) )
 
         src_fs = self._getSourceHandler(sourcepath, is_dir=True,  Atype='copy')

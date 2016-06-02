@@ -143,7 +143,7 @@ class Application:
         '''Start the application
 
         You can only stop the application with return code 0 by calling
-        j.Application.stop(). Don't call sys.exit yourself, don't try to run
+        j.application.stop(). Don't call sys.exit yourself, don't try to run
         to end-of-script, I will find you anyway!
         '''
         if name:
@@ -219,15 +219,6 @@ class Application:
 
         #@todo this SHOULD BE WORKING AGAIN, now processes are never removed
 
-        # if self.gridInitialized:
-        #     client=j.clients.osis.get(user='root')
-        #     clientprocess=j.clients.osis.getCategory(client,"system","process")
-        #     key = "%s_%s"%(j.application.whoAmI.gid,j.application.whoAmI.pid)
-        #     if clientprocess.exists(key):
-        #         obj=clientprocess.get(key)
-        #         obj.epochstop=j.data.time.getTimeEpoch()
-        #         obj.active=False
-        #         clientprocess.set(obj)
         if stop:
             sys.exit(exitcode)
 

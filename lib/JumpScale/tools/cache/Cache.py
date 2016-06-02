@@ -12,7 +12,7 @@ class CacheFactory:
     def get(self,db,expiration=300):
         """
         db is keyvalue stor to use
-        e.g. j.db.cache.get(j.db.keyvaluestore.getRedisStore(namespace="cache"))
+        e.g. j.tools.cache.get(j.servers.kvs.getRedisStore(namespace="cache"))
         """
         return Cache(db,expiration)
 
@@ -43,7 +43,7 @@ class Cache:
         if data==None:
             return False,None
         data=json.loads(data)
-        if data["expire"]<j.base.time.getTimeEpoch():
+        if data["expire"]<j.data.time.getTimeEpoch():
             self.db.delete("cache", key)
             return (True,data["val"])
         else:

@@ -124,7 +124,7 @@ class CuisineDocker:
     def ubuntu(self, name="ubuntu1", image='jumpscale/ubuntu1510', ports=None, volumes=None, pubkey=None, aydofs=False):
         """
         will return connection string which can be used for getting a cuisine connection as follows:
-            j.cuisine.get(connstr)
+            j.tools.cuisine.get(connstr)
         @param ports e.g. 2022,2023
         @param volumes e.g. format: "/var/insidemachine:/var/inhost # /var/1:/var/1
         @param ports e.g. format "22:8022 80:8080"  the first arg e.g. 22 is the port in the container

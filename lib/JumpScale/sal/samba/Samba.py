@@ -147,6 +147,7 @@ class SMBShare:
 class SMBSubShare:
     def __init__(self):
         j.tools.path.get(BASEPATH).mkdir_p()
+        self._local = j.tools.executor.getLocal()
 
     def get(self, sharename, sharepath):
         sharepath = j.tools.path.get(BASEPATH).joinpath(sharepath, sharename)
@@ -185,7 +186,7 @@ class SMBSubShare:
 
     def list(self, path=''):
         sharepath = j.tools.path.get(BASEPATH).joinpath(path)
-        subshares = j._local.execute('find %s -maxdepth 1 -type d -exec basename {} \;' % sharepath).splitlines()
+        subshares = self._local.execute('find %s -maxdepth 1 -type d -exec basename {} \;' % sharepath).splitlines()
         result = list()
         for subshare in subshares:
             if subshare == j.tools.path.get(path.rstrip('/')).basename():

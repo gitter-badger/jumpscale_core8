@@ -1,6 +1,6 @@
 from JumpScale import j
 
-# This extension is available at j.remote.system
+# This extension is available at j.tools.ssh_remotesystem
 import warnings
 # warnings.filterwarnings('ignore', r'.*sha.*')
 
@@ -39,7 +39,7 @@ class Exceptions:
 
 
 class RemoteSystem:
-    name = "j.remote.system"
+    name = "j.tools.ssh_remotesystem"
 
     exceptions = Exceptions
     def __init__(self):

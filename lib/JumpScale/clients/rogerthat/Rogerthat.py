@@ -10,7 +10,7 @@ class RogerthatFactory:
         return Rogerthat(api_key)
 
 class Rogerthat:
-    self.logger = j.logget.get("j.clients.rogerthat")
+    self.logger = j.logger.get("j.clients.rogerthat")
     STATUS_RECEIVED = 1
     STATUS_ACKED = 2
 

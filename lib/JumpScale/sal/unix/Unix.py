@@ -48,6 +48,9 @@ def user_in_group(username, groupname):
 
 
 class UnixSystem:
+    def __init__(self):
+        self.__jslocation__ = "j.sal.unix"
+        self.logger = j.logger.get("j.sal.unix")
 
     def getBashEnvFromFile(self, file, var):
         '''Get the value of an environment variable in a Bash file
@@ -282,7 +285,7 @@ class UnixSystem:
 
         return j.sal.process.execute(**kwargs)
 
-    #@deprecated('j.system.unix.executeDaemonAsUser',
+    #@deprecated('j.sal.unix.executeDaemonAsUser',
     #            alternative='j.sal.process.runDaemon', version='3.2')
     def executeDaemonAsUser(self, command, username, **kwargs):
         '''Execute a given command as a background process as a specific user
@@ -357,15 +360,15 @@ class UnixSystem:
         @type username: string
         '''
 
-        if not j.system.unix.unixUserExists(username):
+        if not j.sal.unix.unixUserExists(username):
             j.logger.log(
                 "User [%s] does not exist, creating an entry" % username, 5)
 
             command = "useradd"
             options = []
-            if groupname and not j.system.unix.unixGroupExists(groupname):
+            if groupname and not j.sal.unix.unixGroupExists(groupname):
                 raise j.exceptions.RuntimeError('Failed to add user because group %s does not exist' %groupname)
-            if groupname and j.system.unix.unixGroupExists(groupname):
+            if groupname and j.sal.unix.unixGroupExists(groupname):
                 options.append("-g %s" %(groupname))
             if shell:
                 options.append("-s %s" % shell)
@@ -395,7 +398,7 @@ class UnixSystem:
         @param groupname: Name of the group to add
         @type groupname : string
         '''
-        if not j.system.unix.unixGroupExists(groupname):
+        if not j.sal.unix.unixGroupExists(groupname):
             j.logger.log("Group [%s] does not exist, creating an entry" %groupname, 5)
             exitCode, stdout, stderr = j.sal.process.run("groupadd %s" %groupname, stopOnError=False)
 
@@ -406,10 +409,10 @@ class UnixSystem:
             j.logger.log("Group %s already exists" % groupname, 4)
 
     def addUserToGroup(self, username, groupname):
-        assert j.system.unix.unixUserExists(username), \
+        assert j.sal.unix.unixUserExists(username), \
             '"%s" user does not exist' % username
 
-        assert j.system.unix.unixGroupExists(groupname), \
+        assert j.sal.unix.unixGroupExists(groupname), \
             '"%s" group does not exist"' % groupname
 
         j.sal.process.execute(
@@ -456,7 +459,7 @@ class UnixSystem:
         @type username: string
 
         """
-        if not j.system.unix.unixUserExists(username):
+        if not j.sal.unix.unixUserExists(username):
             raise ValueError("User [%s] does not exist, cannot disable user" % username)
         else:
             command = 'passwd %s -l' %username
@@ -474,7 +477,7 @@ class UnixSystem:
         @type username: string
 
         """
-        if not j.system.unix.unixUserExists(username):
+        if not j.sal.unix.unixUserExists(username):
             raise ValueError("User [%s] does not exist, cannot enable user" % username)
         else:
             command = 'passwd %s -u' %username
@@ -492,7 +495,7 @@ class UnixSystem:
         @type username: string
 
         """
-        if not j.system.unix.unixUserExists(username):
+        if not j.sal.unix.unixUserExists(username):
             if die:
                 raise ValueError("User [%s] does not exist, cannot remove user" % username)
             else:
@@ -517,7 +520,7 @@ class UnixSystem:
         @type username: string
 
         """
-        if not j.system.unix.unixUserExists(username):
+        if not j.sal.unix.unixUserExists(username):
             raise ValueError("User [%s] does not exist, cannot set password" % username)
         else:
             command = "echo '%s:%s' | chpasswd" %(username, password)

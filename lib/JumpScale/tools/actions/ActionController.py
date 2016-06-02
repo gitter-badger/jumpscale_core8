@@ -48,7 +48,7 @@ class ActionController:
     @property
     def runid(self):
         if self._runid=="" or self._runid==None:
-            raise j.exceptions.RuntimeError("runid cannot be empty, please set with j.actions.setRunID(...)")
+            raise j.exceptions.RuntimeError("runid cannot be empty, please set with j.actions.setRunId(...)")
         return str(self._runid)
 
     def get(self,actionkey):

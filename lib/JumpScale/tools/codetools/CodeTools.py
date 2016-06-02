@@ -339,7 +339,7 @@ class CodeTools:
         return out
 
     def object2yaml(self,obj):
-        return j.tools.yaml.encode(self.object2dict(obj))
+        return j.data.serializer.yaml.dumps(self.object2dict(obj))
 
     def object2json(self,obj,pretty=False,skiperrors=False,ignoreKeys=[],ignoreUnderscoreKeys=False):
         obj=self.object2dict(obj,dieOnUnknown=not skiperrors,ignoreKeys=ignoreKeys,ignoreUnderscoreKeys=ignoreUnderscoreKeys)

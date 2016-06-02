@@ -15,7 +15,7 @@ class RealitProcess:
     def influxpump(self, influxdb, cidr='127.0.0.1', ports=[7777]):
         """
         will dump redis stats into influxdb(s)
-        get connections from j.jumpscale.clients...
+        get connections from jumpscale clients...
         """
 
         InfluxDumper(influxdb, cidr=cidr, ports=ports).start()
@@ -23,7 +23,7 @@ class RealitProcess:
     def monogopump(self, cidr='127.0.0.1', ports=[7777]):
         """
         will dump redis stats into influxdb(s)
-        get connections from j.jumpscale.clients...
+        get connections from jumpscale clients...
         """
 
         MongoDumper(cidr=cidr, ports=ports).start()

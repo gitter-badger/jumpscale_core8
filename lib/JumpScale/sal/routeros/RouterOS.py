@@ -150,9 +150,6 @@ class RouterOS:
 
     def __init__(self, host, login,password):
         # self.configPath = j.sal.fs.joinPaths('/etc', 'RouterOS')
-        # self.remoteApi = j.remote.cuisine.api
-        # j.remote.cuisine.fabric.env['password'] = password
-        # self.remoteApi.connect(host)
         self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._s.connect((host, 8728 ))  
         self.api = ApiRos(self._s)

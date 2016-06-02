@@ -394,10 +394,6 @@ class ErrorConditionHandler:
             return "less"
 
         if False and j.application.interactive:
-            #if j.application.shellconfig.debug:
-                #print "###ERROR: BACKTRACE"
-                #print errorConditionObject.backtrace
-                #print "###END: BACKTRACE"
 
             editor = None
             if j.core.platformtype.myplatform.isLinux():

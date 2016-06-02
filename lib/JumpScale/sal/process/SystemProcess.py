@@ -1825,18 +1825,18 @@ class SystemProcess:
         return env
 
     def appGetPids(self,appname):
-        if j.application.redis==None:
+        if j.core.db==None:
             raise j.exceptions.RuntimeError("Redis was not running when applications started, cannot get pid's")
-        if not j.application.redis.hexists("application",appname):
+        if not j.core.db.hexists("application",appname):
             return list()
         else:
-            pids=j.data.serializer.json.loads(j.application.redis.hget("application",appname))
+            pids=j.data.serializer.json.loads(j.core.db.hget("application",appname))
             return pids
 
     def appsGetNames(self):
-        if j.application.redis==None:
+        if j.core.db==None:
             raise j.exceptions.RuntimeError("Make sure redis is running for port 9999")
-        return j.application.redis.hkeys("application")
+        return j.core.db.hkeys("application")
 
     def getDefunctProcesses(self):
         rc,out=j.sal.process.execute("ps ax")
@@ -1862,7 +1862,7 @@ class SystemProcess:
             pids=[pid for pid in pids if pid not in defunctlist]
 
             if pids==[]:
-                j.application.redis.hdelete("application",item)
+                j.core.db.hdelete("application",item)
             else:
                 result[item]=pids
         return result
@@ -1879,6 +1879,6 @@ class SystemProcess:
                     todelete.append(pid)
         for item in todelete:
             pids.remove(item)
-        j.application.redis.hset("application",appname,j.data.serializer.json.dumps(pids))
+        j.core.db.hset("application",appname,j.data.serializer.json.dumps(pids))
 
         return pids

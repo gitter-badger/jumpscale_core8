@@ -138,7 +138,7 @@ class NumTools:
         if self.currencies == {}:
             path = j.sal.fs.joinPaths("cfg", "currencies.cfg")
             if j.sal.fs.exists(path):
-                ini = j.data.inifile.open(path)
+                ini = j.tools.inifile.open(path)
                 if ini.checkSection("eur"):
                     for cur in list(ini.getSectionAsDict("eur").keys()):
                         self.currencies[cur] = ini.getFloatValue("eur", cur)

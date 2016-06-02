@@ -932,6 +932,9 @@ class Sheet(j.tools.code.classGetBase()):
 
 class SheetFactory:
 
+    def __init__(self):
+        self.__jslocation__ = "j.tools.sheet"
+
     def new(self, name, nrcols=72, headers=[], period="M"):
         """
         @param period is M,Q or Y

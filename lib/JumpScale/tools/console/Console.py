@@ -87,11 +87,6 @@ class Console:
         if indent==0 or indent==None:
             indent=self.indent
 
-        #if j.transaction.hasRunningTransactions():
-        #    maxLengthStatusType= 8 #nr chars
-        #else:
-        #    maxLengthStatusType=0
-
         if prefix!="":
             prefix="%s: "%(prefix)
 
@@ -135,8 +130,6 @@ class Console:
         # if lf and msg!="" and msg[-1]!="\n":
         #     msg+="\n"
         msg=self._cleanline(msg)
-        #if j.transaction.hasRunningTransactions() and withStar==False:
-        #    indent=self.indent+1
         msg=self.formatMessage(msg,indent=indent,withStar=withStar,prefix=prefix).rstrip(" ")
         # msg=msg.rstrip()
 

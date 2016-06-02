@@ -26,7 +26,7 @@ def action():
         timeout = timemap.get(queue)
         lastactiv = '{{ts:%s}}' % lastactive if lastactive else 'never'
         result['message'] = '*%s last active*: %s' % (queue.upper(), lastactiv)
-        if j.base.time.getEpochAgo(timeout) < lastactive:
+        if j.data.time.getEpochAgo(timeout) < lastactive:
             result['state'] = 'OK'
         else:
             j.errorconditionhandler.raiseOperationalCritical(result['message'], 'monitoring', die=False)

@@ -34,10 +34,6 @@ class Time_:
         '''
         Get epoch timestamp (number of seconds passed since January 1, 1970)
         '''
-        # try:
-        #     return j.core.appserver6.runningAppserver.webserver.epoch  #@todo P3 (check if working)
-        # except:
-        #     pass
         timestamp = int(time.time())
         return timestamp
 

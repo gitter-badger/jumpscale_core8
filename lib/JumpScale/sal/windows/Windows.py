@@ -48,7 +48,7 @@ class WindowsSystem:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.windows"
-        self.logger j .logger.get("j.sal.windows")
+        self.logger = j .logger.get("j.sal.windows")
         self.__dict__ = self.__shared_state
 
 
@@ -587,7 +587,7 @@ class WindowsSystem:
         displayName = serviceName
         binDir = j.sal.fs.joinPaths(j.dirs.base, 'apps','postgresql8', 'bin')
         pgDataDir = j.sal.fs.joinPathso.dirs.baseDir, 'apps','postgresql8', 'Data')
-        j.system.windows.createService(serviceName, displayName , '%s\\pg_ctl.exe','runservice -W -N %s -D %s'%(serviceName, pgDataDir))
+        j.sal.windows.createService(serviceName, displayName , '%s\\pg_ctl.exe','runservice -W -N %s -D %s'%(serviceName, pgDataDir))
         """
         self.logger.info('Creating Service %s'%serviceName)
 

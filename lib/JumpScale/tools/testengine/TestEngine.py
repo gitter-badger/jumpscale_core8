@@ -160,9 +160,6 @@ class TestEngine:
 
     def initTests(self,noOsis, osisip="127.0.0.1",login="",passwd=""): #@todo implement remote osis
         self.noOsis = noOsis
-        if not noOsis:
-            client = j.clients.osis.get(user="root")
-            self.osis=j.clients.osis.getCategory(client, 'system', 'test')
 
     def _patchTest(self, testmod):
         if hasattr(testmod, 'TEST') and not isinstance(testmod.TEST, unittest.TestCase):

@@ -15,7 +15,7 @@ from stat import ST_MTIME
 from SystemFSWalker import *
 
 
-# We import only jumpscale as the j.system.fs is used before jumpscale is initialized. Thus the q cannot be imported yet
+# We import only jumpscale as the j.sal.fs is used before jumpscale is initialized. Thus the q cannot be imported yet
 
 
 from JumpScale import j

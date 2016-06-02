@@ -24,7 +24,7 @@ def timeago(t):
         return "%sm"%round(ago/60,1)
     return "%ss"%ago
 
-redism=j.application.redis
+redism=j.core.db
 redisp=j.clients.redis.getByInstance("system", gevent=True)
 
 if opts.action =='workerwatchdog':

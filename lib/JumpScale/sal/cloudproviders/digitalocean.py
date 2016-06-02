@@ -51,11 +51,10 @@ class DigitalOcean:
 
         if not host:
             raise j.exceptions.RuntimeError('Could not find machine: %s' % machine_name)
-        rapi = j.remote.cuisine.api
-        rapi.connect(host)
+        rapi = j.tools.cuisine.get(j.tools.executor.get(host))
         if sudo:
-            return rapi.sudo(command)
-        return rapi.run(command)
+            return rapi.core.sudo(command)
+        return rapi.core.run(command)
 
     def import_keypair(self, name, key_file):
         with open(key_file) as f:

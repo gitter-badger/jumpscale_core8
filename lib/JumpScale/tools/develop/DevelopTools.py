@@ -9,7 +9,7 @@ class MyFSEventHandler(FileSystemEventHandler):
     def catch_all_handler(self, event):
         if event.is_directory:
             return
-            # j.tools.debug.syncCode()
+            # j.tools.develop.syncCode()
         else:
             changedfile = event.src_path
             for node in j.tools.develop.nodes:
@@ -128,9 +128,9 @@ class DevelopToolsFactory:
     def help(self):
         H = """
         example to use #@todo change python3... to js... (but not working on osx yet)
-        js 'j.tools.debug.init("ovh4,ovh3")'
-        js 'j.tools.debug.installJSSandbox(rw=True)' #will install overlay sandbox wich can be editted
-        js 'j.tools.debug.syncCode(True)'
+        js 'j.tools.develop.init("ovh4,ovh3")'
+        js 'j.tools.develop.installJSSandbox(rw=True)' #will install overlay sandbox wich can be editted
+        js 'j.tools.develop.syncCode(True)'
         if you now go onto e.g. ovh4 you will see on /opt/... all changes reflected which you make locally
 
         example output:

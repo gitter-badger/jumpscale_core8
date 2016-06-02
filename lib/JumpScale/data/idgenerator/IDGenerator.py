@@ -6,7 +6,7 @@ import sys
 class IDGenerator:
     """
     generic provider of id's
-    lives at j.idgenerator
+    lives at j.data.idgenerator
     """
     def __init__(self):
         self.__jslocation__ = "j.data.idgenerator"

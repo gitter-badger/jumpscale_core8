@@ -871,14 +871,14 @@ def main():
 
         if file_.startswith('http://') or file_.startswith('https://'):
             baseurl = file_
-            j = urllib.request.urlopen(baseurl)
-            data = j.read()
+            doc = urllib.request.urlopen(baseurl)
+            data = doc.read()
             if encoding is None:
                 try:
                     from feedparser import _getCharacterEncoding as enc
                 except ImportError:
                     enc = lambda x, y: ('utf-8', 1)
-                encoding = enc(j.headers, data)[0]
+                encoding = enc(doc.headers, data)[0]
                 if encoding == 'us-ascii':
                     encoding = 'utf-8'
         else:

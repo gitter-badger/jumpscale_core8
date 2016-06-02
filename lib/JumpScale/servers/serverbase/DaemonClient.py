@@ -41,8 +41,6 @@ class DaemonClient:
             self._id=id
         else:
             end = 4294967295  # 4bytes max nr
-            # self._id = struct.pack("<III", j.data.idgenerator.generateRandomInt(
-            #     1, end), j.base).idgenerator.generateRandomInt(1, end), j.data.idgenerator.generateRandomInt(1, end))
             random = uuid.uuid4()
             self._id="%s_%s_%s_%s"%(j.application.whoAmI.gid,j.application.whoAmI.nid,j.application.whoAmI.pid, random)
 

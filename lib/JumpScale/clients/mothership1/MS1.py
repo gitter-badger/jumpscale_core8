@@ -120,61 +120,6 @@ class MS1:
 
         return api
 
-    # def deployAppDeck(self, spacesecret, name, memsize=1024, ssdsize=40, vsansize=0, aysdomain='solutions', aysname=None, config=None, description=None,**args):
-    #     machine_id = self.deployMachineDeck(spacesecret, name, memsize, ssdsize, vsansize, description)
-    #     api = self.getApiConnection(location)
-    #     portforwarding_actor = api.getActor('cloudapi', 'portforwarding')
-    #     cloudspaces_actor = api.getActor('cloudapi', 'cloudspaces')
-    #     machines_actor = api.getActor('cloudapi', 'machines')
-    #     # create ssh port-forward rule
-    #     for _ in range(30):
-    #         machine = machines_actor.get(machine_id)
-    #         if j.data.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
-    #             break
-    #         else:
-    #             time.sleep(2)
-    #     if not j.data.types.ipaddress.check(machine['interfaces'][0]['ipAddress']):
-    #         raise j.exceptions.RuntimeError('Machine was created, but never got an IP address')
-    #     cloudspace_forward_rules = portforwarding_actor.list(machine['cloudspaceid'])
-    #     public_ports = [rule['publicPort'] for rule in cloudspace_forward_rules]
-    #     ssh_port = '2222'
-    #     cloudspace = cloudspaces_actor.get(machine['cloudspaceid'])
-    #     while True:
-    #         if ssh_port not in public_ports:
-    #             portforwarding_actor.create(machine['cloudspaceid'], cloudspace['publicipaddress'], ssh_port, machine['id'], '22')
-    #             break
-    #         else:
-    #             ssh_port = str(int(ssh_port) + 1)
-
-    #     # do an ssh connection to the machine
-    #     if not j.sal.nettools.waitConnectionTest(cloudspace['publicipaddress'], int(ssh_port), 60):
-    #         raise j.exceptions.RuntimeError("Failed to connect to %s %s" % (cloudspace['publicipaddress'], ssh_port))
-    #     ssh_connection = j.remote.cuisine.api
-    #     username, password = machine['accounts'][0]['login'], machine['accounts'][0]['password']
-    #     ssh_connection.fabric.api.env['password'] = password
-    #     ssh_connection.fabric.api.env['connection_attempts'] = 5
-    #     ssh_connection.connect('%s:%s' % (cloudspace['publicipaddress'], ssh_port), username)
-
-    #     # install ays there
-    #     ssh_connection.sudo('ays mdupdate')
-    #     if config:
-    #         ays_hrd_file = j.sal.fs.joinPaths(j.dirs.hrdDir, '%s_%s' % (aysdomain, aysname))
-    #         ssh_connection.file_write(ays_hrd_file, config, sudo=True)
-    #     if aysdomain and aysname:
-    #         ssh_connection.sudo('ays install -n %s -d %s' % (aysname, aysdomain))
-
-    #     #cleanup
-    #     cloudspace_forward_rules = portforwarding_actor.list(machine['cloudspaceid'])
-    #     ssh_rule_id = [rule['id'] for rule in cloudspace_forward_rules if rule['publicPort'] == ssh_port][0]
-    #     portforwarding_actor.delete(machine['cloudspaceid'], ssh_rule_id)
-    #     if config:
-    #         hrd = j.data.hrd.get(content=config)
-    #         if hrd.exists('services_ports'):
-    #             ports = hrd.getList('services_ports')
-    #             for port in ports:
-    #                 portforwarding_actor.create(machine['cloudspaceid'], cloudspace['publicipaddress'], str(port), machine['id'], str(port))
-    #     return {'publicip': cloudspace['publicipaddress']}
-
     def getMachineSizes(self,spacesecret, cloudspaceId):
         if self.db.exists("ms1", "ms1:cache:%s:sizes"%spacesecret):
             return j.data.serializer.json.loads(self.db.get('ms1', "ms1:cache:%s:sizes"%spacesecret))

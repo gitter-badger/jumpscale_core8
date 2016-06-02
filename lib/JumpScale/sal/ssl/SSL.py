@@ -131,13 +131,15 @@ class KeyStor:
 
 
     def perftest(self,nrrounds=1000,sign=True):
-        j.data.timer.start()
+        start = time.time()
         org="myorg.com"
         print(("\n\nstart perftest for encryption, nrrounds:%s"%nrrounds))
         for i in range(nrrounds):
             msg,signature= self.encrypt(org,"alice","bob","this is a test message.",sign=sign)
             self.decrypt(org,"alice","bob",msg,signature)
-        j.data.timer.stop(nrrounds)
+        stop = time.time()
+        nritems = nrrounds / (stop - start)
+        #print(("nrrounds items per sec: %s" % nritems))
 
     def encrypt(self, orgsender, sender, orgreader, reader, message, sign=True, base64=True, pubkeyReader=""):
         """

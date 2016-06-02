@@ -38,7 +38,7 @@ class NodeBase(MonitorTools):
         self.debug=False
 
         print("ssh init %s"%self)
-        self.ssh = j.remote.cuisine.connect(ipaddr, sshport)
+        self.ssh = j.tools.cuisine.get(j.tools.executor.get(ipaddr, sshport))
         if self.key and self.key != '':
             self.fabric.env["key"] = self.key
         print("OK")
@@ -88,9 +88,9 @@ class NodeBase(MonitorTools):
 
         if not dieOnError:
             with warn_only():
-                res = self.ssh.run(cmd)
+                res = self.ssh.core.run(cmd)
         else:
-            res = self.ssh.run(cmd)
+            res = self.ssh.core.run(cmd)
 
         return res
 

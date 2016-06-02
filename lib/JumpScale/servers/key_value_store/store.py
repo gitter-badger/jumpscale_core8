@@ -322,12 +322,9 @@ class KeyValueStoreBase:#, metaclass=ABCMeta):
 
     def now(self):
         """
-        return current time (when in appserver will require less time then calling native jumpscale function)
+        return current time
         """
-        if j.core.appserver6.runningAppserver!= None:
-            return j.core.appserver6.runningAppserver.time
-        else:
-            return j.data.time.getTimeEpoch()
+        return j.data.time.getTimeEpoch()
 
     def getModifySet(self,category,key,modfunction,**kwargs):
         """
