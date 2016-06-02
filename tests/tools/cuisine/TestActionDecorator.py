@@ -7,12 +7,12 @@ from JumpScale import j
 
 class TestActionDecorator(unittest.TestCase):
     def setUp(self):
-        pass
+        j.core.db.flushall()
 
     def tearDown(self):
         pass
 
-    def say_hello(self):
+    def say_hello(self, executor=None):
         return 'Hello'
 
     def test_create_actiondecorator(self):
@@ -45,8 +45,18 @@ class TestActionDecorator(unittest.TestCase):
         Test call a decorated action
         """
         cuisine = j.tools.cuisine.local
+        ad = ActionDecorator(action=True)
+        ad.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj='hello'"
+        action = ad(self.say_hello)
+        action(*[cuisine])
+
+    def test_call_actoindecorator_no_action(self):
+        """
+        Test call a decorated action when action flag is set to false
+        """
+        cuisine = j.tools.cuisine.local
         ad = ActionDecorator(action=False)
-        ad.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id')"
+        ad.selfobjCode="cuisine=j.tools.cuisine.getFromId('$id');selfobj='hello'"
         action = ad(self.say_hello)
         action()
 
