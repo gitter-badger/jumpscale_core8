@@ -164,6 +164,14 @@ class CuisineGeoDns:
         """
         self.cuisine.processmanager.stop(name)
 
+    @property
+    def domains(self):
+        domains = []
+        for path in self.cuisine.core.fs_find('$cfgDir/geodns/dns/',type='f', pattern='*.json', recursive=False):
+            basename = j.sal.fs.getBaseName(path)
+            domains.append(basename.rstrip('.json'))
+        return domains
+
     def ensure_domain(self, domain_name, serial=None,  ttl=None, content=None, max_hosts=2,  a_records={}, cname_records={}, ns=[]):
         """
         used to create a domain_name in dns server also updates if already exists
