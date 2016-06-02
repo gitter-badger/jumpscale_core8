@@ -188,7 +188,7 @@ class CuisineGeoDns:
         domain_instance = Domain(domain_name, self.cuisine, serial, ttl, content, max_hosts, a_records, cname_records, ns)
         domain_instance.save()
         return domain_instance
-    
+
     def get_domain(self, domain_name):
         """
         get domain object with dict of relevant records
@@ -199,17 +199,17 @@ class CuisineGeoDns:
 
     def del_domain(self, domain_name):
         """
-        delete domain object 
+        delete domain object
         """
         self.cuisine.core.dir_remove("$cfgDir/geodns/dns/%s.json" % domain_name)
 
     def add_record(self, domain_name, subdomain, record_type, value, weight=100):
         """
-        @domain_name = domin object name : string 
-        @subdomain = subdomain assigned to record : string 
-        @record_type = cname or a :string 
-        @value = ip or cname : string 
-        @weight = recurrence on request : int 
+        @domain_name = domin object name : string
+        @subdomain = subdomain assigned to record : string
+        @record_type = cname or a :string
+        @value = ip or cname : string
+        @weight = recurrence on request : int
         """
         domain_instance = self.get_domain(domain_name)
         if record_type == "a":
@@ -219,10 +219,10 @@ class CuisineGeoDns:
         return domain_instance.save()
 
 
-    
+
     def get_record(self, domain_name, record_type, subdomain=None):
         """
-        returns a dict of record/s and related subdomains within domain 
+        returns a dict of record/s and related subdomains within domain
         """
         domain_instance = self.get_domain(domain_name)
         if record_type == "a":
@@ -241,5 +241,3 @@ class CuisineGeoDns:
         if record_type == "cname":
             domain_instance.del_cname_record(subdomain, value)
         return domain_instance.save()
-
-
