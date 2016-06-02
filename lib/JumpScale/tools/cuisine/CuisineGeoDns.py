@@ -102,6 +102,7 @@ class Domain:
         return self._cname_records.pop(subdomain)
 
     def save(self):
+        self.content = {"data": {"": {}}}
         for key, val in self._a_records.items():
             self.add_subdomain(key)
             self.content["data"][key]["a"] = val
