@@ -1,6 +1,5 @@
 from JumpScale import j
 from ActionDecorator import ActionDecorator
-import json
 
 
 class actionrun(ActionDecorator):
@@ -25,7 +24,7 @@ class Domain:
         self.cuisine = cuisine
         self.name = name
         if content:
-            self.content = json.loads(content)
+            self.content = j.data.serializer.json.loads(content)
             if "ttl" in self.content:
                 self.ttl = self.content["ttl"]
             if "max_hosts" in self.content:
@@ -114,7 +113,7 @@ class Domain:
         self.content["serial"] = self.serial
         self.content["max_hosts"] = self.max_hosts
         self.content["data"][""]["ns"] = self.ns
-        config = json.dumps(self.content)
+        config = j.data.serializer.json.dumps(self.content)
         self.cuisine.core.file_write("$cfgDir/geodns/dns/%s.json" % self.name, config)
         return config
 
