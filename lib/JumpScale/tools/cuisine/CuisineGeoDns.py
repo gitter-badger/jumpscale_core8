@@ -140,6 +140,7 @@ class CuisineGeoDns:
         # moving files and creating config
         self.cuisine.core.file_copy("$goDir/bin/geodns", "$binDir")
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/geodns/dns", recursive=True)
+        self.cuisine.bash.addPath('$binDir')
 
         self.cuisine.core.file_copy(
             "$tmplsDir/cfg/geodns", "$cfgDir/", recursive=True)
@@ -150,7 +151,7 @@ class CuisineGeoDns:
         """
         if self.cuisine.core.dir_exists(config_dir):
             self.cuisine.core.dir_ensure(config_dir)
-        cmd = "./geodns -interface %s -port %s -config=%s -identifier=%s -cpus=%s" % (ip, str(port), config_dir, identifier, str(cpus))
+        cmd = "$binDir/geodns -interface %s -port %s -config=%s -identifier=%s -cpus=%s" % (ip, str(port), config_dir, identifier, str(cpus))
         if tmux:
             pm = self.cuisine.processmanager.get("tmux")
             pm.ensure(name=identifier, cmd=cmd, env={}, path="$binDir")
