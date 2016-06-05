@@ -1041,7 +1041,7 @@ class SystemFS:
             #if not j.sal.fs.isDir(path):
                 #raise ValueError('Specified path: %s is not a directory' % path)
             #result = []
-            #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
+            #os.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
             #return result
 
         files=self._listInDir(path,followSymlinks=True)
@@ -1627,7 +1627,7 @@ class SystemFS:
                 if j.sal.fs.isDir(dirname):
                     j.sal.fs.renameDir(dirname,dirname2)
         arg={}
-        os.path.walk(rootdir, visit,arg)
+        os.walk(rootdir, visit,arg)
 
     def convertFileDirnamesSpaceToUnderscore(self,rootdir):
         def visit(arg,dirname,names):
@@ -1637,7 +1637,7 @@ class SystemFS:
                 if j.sal.fs.isDir(dirname):
                     j.sal.fs.renameDir(dirname,dirname2)
         arg={}
-        os.path.walk(rootdir, visit,arg)
+        os.walk(rootdir, visit,arg)
 
     def getTmpDirPath(self):
         """

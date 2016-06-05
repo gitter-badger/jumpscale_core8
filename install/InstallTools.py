@@ -629,7 +629,7 @@ class InstallTools():
             #if not self.isDir(path):
                 #raise ValueError('Specified path: %s is not a directory' % path)
             #result = []
-            #os.path.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
+            #os.walk(path, lambda a, d, f: a.append('%s%s' % (d, os.path.sep)), result)
             #return result
         if path==None or path.strip=="":
             raise RuntimeError("path cannot be empty")
@@ -2649,8 +2649,8 @@ exec python3 -q "$@"
                 if path.find("sitecustomize")!=-1:
                     self.symlink("%s/utils/sitecustomize.py"%self.BASE,path)
             print("walk over /usr to find sitecustomize and link to new one")
-            os.path.walk("/usr", do,"")
-            os.path.walk("/etc", do,"")
+            os.walk("/usr", do,"")
+            os.walk("/etc", do,"")
 
 
     def develtools(self):
