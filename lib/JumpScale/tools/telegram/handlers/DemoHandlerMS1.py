@@ -9,16 +9,14 @@ class DemoHandlerMS1:
         pass
 
     def on_text(self, tg, message):
+        j.application.break_into_jshell("DEBUG NOW kkk")
 
-        from IPython import embed
-        print("DEBUG NOW kkk")
-        embed()
-        
-            
+
+
         # markup={}
         # markup["force_reply"]=True
 
-        # tg.send_message(message.chat.id, "this is me",reply_to_message_id=None,reply_markup=j.data.serializer.json.dumps(markup))               
+        # tg.send_message(message.chat.id, "this is me",reply_to_message_id=None,reply_markup=j.data.serializer.json.dumps(markup))
 
         markup={}
         markup["keyboard"]=[["yes"],["no"],["1","2","3"],["stop"]]
@@ -27,7 +25,4 @@ class DemoHandlerMS1:
 
         if not message.text=="stop":
 
-            tg.send_message(message.chat.id, "Please fill in",reply_to_message_id=None,reply_markup=j.data.serializer.json.dumps(markup))                    
-
-
-        
+            tg.send_message(message.chat.id, "Please fill in",reply_to_message_id=None,reply_markup=j.data.serializer.json.dumps(markup))

@@ -34,10 +34,10 @@ class MySQLClient:
         mysql_time_epoch = calendar.timegm(mysql_time_struct)
         return mysql_time_epoch
 
-    def _eptochToMysqlTime(self,time_epoch): 
+    def _eptochToMysqlTime(self,time_epoch):
         time_struct = time.gmtime(time_epoch)
         time_formatted = time.strftime('%Y-%m-%d %H:%M:%S', time_struct)
-        return time_formatted     
+        return time_formatted
 
     def deleteRow(self,tablename,whereclause):
         Q="DELETE FROM %s WHERE %s"%(tablename,whereclause)
@@ -45,19 +45,15 @@ class MySQLClient:
         result = self.client.use_result()
         if result!=None:
             result.fetch_row()
-            
-        return result      
-        
+
+        return result
+
     def select1(self,tablename,fieldname,whereclause):
         Q="SELECT %s FROM %s WHERE %s;"%(fieldname,tablename,whereclause)
         result=self.queryToListDict(Q)
         if len(result)==0:
             return None
         else:
-            # from IPython import embed
-            # print "DEBUG NOW select1"
-            # embed()
-            
             return result
 
     def queryToListDict(self,query):
@@ -71,12 +67,12 @@ class MySQLClient:
 
         resultout=[]
         while True:
-            row=result.fetch_row()    
+            row=result.fetch_row()
             if len(row)==0:
                 break
             row=row[0]
             rowdict={}
-            for colnr in range(0,len(row)):        
+            for colnr in range(0,len(row)):
                 colname=fields[colnr]
                 if colname.find("dt__")==0:
                     colname=colname[4:]
@@ -99,12 +95,11 @@ class MySQLClient:
                         raise j.exceptions.RuntimeError("Could not decide what value for bool:%s"%col)
                 elif colname.find("html__")==0:
                     colname=colname[6:]
-                    col=self._html2text(row[colnr])                    
+                    col=self._html2text(row[colnr])
                 else:
                     col=row[colnr]
-                    
+
                 rowdict[colname]=col
             resultout.append(rowdict)
 
         return resultout
-

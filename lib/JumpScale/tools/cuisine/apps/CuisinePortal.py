@@ -25,7 +25,8 @@ class CuisinePortal:
         """
         self.cuisine.bash.environSet("LC_ALL", "C.UTF-8")
         if not self.cuisine.core.isMac:
-            self.cuisine.installerdevelop.jumpscale8()
+            if not self.cuisine.installer.jumpscale_installed():
+                self.cuisine.installerdevelop.jumpscale8()
             self.cuisine.pip.upgrade("pip")
         self.installDeps()
         self.getcode()

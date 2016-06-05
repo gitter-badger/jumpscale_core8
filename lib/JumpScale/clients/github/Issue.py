@@ -5,8 +5,9 @@ import re
 from github.GithubObject import NotSet
 from Milestone import RepoMilestone
 
-re_story_name = re.compile('.+\((.+)\)$')
-
+re_story_name = re.compile('.+\((.+)\)\s*$')
+re_task_estimate = re.compile('.+\[([^\]]+)\]\s*$')
+re_story_estimate = re.compile('^ETA:\s*(.+)\s*$', re.MULTILINE)
 
 class Issue(Base):
 
@@ -18,6 +19,14 @@ class Issue(Base):
         if githubObj is not None:
             self.load()
         # self.todo
+
+    @staticmethod
+    def get_story_name(title):
+        m = re_story_name.match(title.strip())
+        if m is None:
+            return None
+
+        return m.group(1)
 
     @property
     def api(self):
@@ -71,7 +80,26 @@ class Issue(Base):
 
     @property
     def labels(self):
-        return self.ddict["labels"]
+        #we return a copy so changing the list doesn't actually change the ddict value
+        return self.ddict["labels"][:]
+
+    @property
+    def task_estimate(self):
+        m = re_task_estimate.match(self.title)
+        if m is not None:
+            return m.group(1).strip()
+        return None
+
+    @property
+    def story_estimate(self):
+        if not len(self.comments):
+            return None, None
+        # find last comment with ETA
+        for last in reversed(self.comments):
+            m = re_story_estimate.search(last['body'])
+            if m is not None:
+                return m.group(1), last['id']
+        return None, None
 
     @property
     def id(self):
@@ -121,10 +149,9 @@ class Issue(Base):
             if label.startswith("type"):
                 items.append(label)
         if len(items) == 1:
-            return items[0][len("type"):].strip("_")
-        else:
-            self.type = ""
-            return ""
+            return items[0].partition("_")[-1]
+
+        return ""
 
     @type.setter
     def type(self, val):
@@ -137,7 +164,7 @@ class Issue(Base):
             if label.startswith("priority"):
                 items.append(label)
         if len(items) == 1:
-            return items[0][len("priority"):].strip("_")
+            return items[0].partition("_")[-1]
         else:
             self.priority = "normal"
             return self.priority
@@ -180,7 +207,8 @@ class Issue(Base):
             return
 
         if val.startswith(category):
-            val = val[len(category):]
+            _, _, val = val.partition('_')
+
         val = val.strip("_")
         val = val.lower()
 
@@ -378,7 +406,7 @@ class Issue(Base):
 
     @property
     def isStory(self):
-        if self.type == 'story' or self.title.lower().endswith('story'):
+        if self.type == 'story' or self.story_name != '':
             return True
         return False
 
@@ -390,14 +418,10 @@ class Issue(Base):
 
     @property
     def story_name(self):
-        if not self.isStory:
+        name = Issue.get_story_name(self.title)
+        if name is None:
             return ''
-
-        for name in re_story_name.findall(self.title):
-            if name != '':
-                return name
-
-        return ''
+        return name
 
     @property
     def tasks(self):
@@ -452,6 +476,17 @@ class Issue(Base):
             j.exceptions.Input("This issue is not a story")
             return
 
+        def state(s):
+            s = s.lower()
+            if s == 'verification':
+                return ':white_circle: Verification'
+            elif s == 'inprogress':
+                return ':large_blue_circle: In Progress'
+            elif s == 'closed':
+                return ':white_check_mark: Closed'
+            else:
+                return ':red_circle: Open'
+
         task_table_found = False
         change = False
         doc = j.data.markdown.getDocument(self.body)
@@ -468,16 +503,16 @@ class Issue(Base):
                 if not "#%d" % task.number in existing_tasks:
                     self.logger.info("%s: add task:%s" % (self, task))
                     change = True
-                    table.addRow([task.state, task.title, "#%s" % task.number])
+                    table.addRow([state(task.state), task.title, "#%s" % task.number])
                     break
                 else:
                     # update task status if needed
                     for row in table.rows:
-                        state = 'open' if task.isOpen else 'closed'
-                        if row[2] == '#%s' % task.number and row[0] != state:
+                        current_state = state('open') if task.isOpen else state('closed')
+                        if row[2] == '#%s' % task.number and row[0] != current_state:
                             self.logger.info("%s: update task:%s" % (self, task))
                             change = True
-                            row[0] = state
+                            row[0] = current_state
                             row[1] = task.title
                             break
 
@@ -485,7 +520,7 @@ class Issue(Base):
             change = True
             table = doc.addMDTable()
             table.addHeader(['status', 'title', 'link'])
-            table.addRow([task.state, task.title, "#%s" % task.number])
+            table.addRow([state(task.state), task.title, "#%s" % task.number])
 
         if change:
             self.ddict["body"] = str(doc)
@@ -499,14 +534,11 @@ class Issue(Base):
             raise j.exceptions.Input("The task (%s) and the story (%s) have to be in the same Repository." % (self.title, story.task))
             # return
 
-        if not self.isTask:
-            raise j.exceptions.Input("This issue (%s) is not a task" % self.title)
-            # return
+        body = self.body
+        if body is None:
+            body = ''
 
-        if self.body=="" or self.body==None:
-            return
-
-        doc = j.data.markdown.getDocument(self.body)
+        doc = j.data.markdown.getDocument(body)
 
         change = False
         story_line_found = False
@@ -528,8 +560,7 @@ class Issue(Base):
 
         if change:
             self.logger.info("%s: link to story:%s" % (self, story))
-            self.ddict["body"] = str(doc)
-            self.api.edit(body=str(doc))
+            self.body = str(doc)
 
     def __str__(self):
         return "issue:%s" % self.title

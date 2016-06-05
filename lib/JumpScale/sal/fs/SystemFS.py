@@ -617,7 +617,7 @@ class SystemFS:
         return self.pathClean(path)
 
     def dirEqual(self,path1,path2):
-        return self.pathDirClean(path1)==self.pathDirClean(path1)
+        return self.pathDirClean(path1)==self.pathDirClean(path2)
 
     def pathNormalize(self, path,root=""):
         """

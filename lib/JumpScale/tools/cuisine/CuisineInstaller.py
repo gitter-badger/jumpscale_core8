@@ -19,8 +19,9 @@ class CuisineInstaller:
 
     @actionrun(action=True)
     def jumpscale_installed(self, die=False):
-        rc, out = self.cuisine.core.run('which js8', die=False)
-        if rc == 0 and out:
+        rc1, out1 = self.cuisine.core.run('which js8', die=False)
+        rc2, out2 = self.cuisine.core.run ('which js' , die=False)
+        if (rc1 == 0 and out1) or (rc2 == 0 and out2):
             return True
         return False
 

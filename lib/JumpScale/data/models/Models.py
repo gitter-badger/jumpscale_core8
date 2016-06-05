@@ -452,8 +452,8 @@ class User(ModelBase, Document):
 
 class SessionCache(ModelBase, Document):
     __redis__ = True
-
     user = StringField()
+    kwargs = DictField()
     _creation_time = IntField(default=j.data.time.getTimeEpoch())
     _accessed_time = IntField(default=j.data.time.getTimeEpoch())
     guid = StringField()

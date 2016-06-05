@@ -7,7 +7,7 @@ from JumpScale import j
 class HostFileFactory:
     def __init__(self):
         self.__jslocation__ = "j.sal.hostsfile"
-        self.logger = j.logger.get("j.sal.hostsfile")
+
 
     def get(self):
         return HostFile()
@@ -15,7 +15,8 @@ class HostFileFactory:
 class HostFile:
 
     def __init__(self):
-        self.hostfilePath="/etc/hosts"
+        self.hostfilePath = "/etc/hosts"
+        self.logger = j.logger.get("j.sal.hostsfile")
 
     def remove(self, ip):
         """Update a hostfile, delete ip from hostsfile

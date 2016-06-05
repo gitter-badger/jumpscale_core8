@@ -284,7 +284,8 @@ class ServiceRecipe(ServiceTemplate):
             # print("NEWINSTANCE: Service instance %s!%s  exists." % (self.name, instance))
             service._recipe = self
             service.init(args=args)
-
+            if model is not None:
+                service.model = model
         else:
             key = "%s!%s" % (self.role, instance)
 

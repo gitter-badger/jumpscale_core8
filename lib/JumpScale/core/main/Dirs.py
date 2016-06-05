@@ -93,7 +93,7 @@ class Dirs:
         txt=txt.replace("$codedir",self.codeDir)
         txt=txt.replace("$vardir",self.varDir)
         txt=txt.replace("$cfgDir",self.cfgDir)
-        # txt=txt.replace("$hrdDir",self.ays)
+        txt=txt.replace("$hrdDir",self.hrd)
         txt=txt.replace("$bindir",self.binDir)
         txt=txt.replace("$logdir",self.logDir)
         txt=txt.replace("$tmpdir",self.tmpDir)

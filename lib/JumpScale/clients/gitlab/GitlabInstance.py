@@ -104,9 +104,7 @@ class GitlabInstance:
         # if result!=None:
         #     return result
         # else:
-        #     from IPython import embed
-        #     print "DEBUG NOW groupinfo"
-        #     embed()
+            #   j.application.break_into_jshell("DEBUG NOW groupinfo")
 
         #     group = self.gitlab.find_group(name=groupname)
         #     self.cache.set(groupname,group)

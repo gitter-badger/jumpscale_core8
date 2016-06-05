@@ -28,7 +28,7 @@ class CuisineProxy:
         self.cuisine.fw.ufw_enable()
         self.cuisine.fw.allowIncoming(8123)
 
-        self.cuisine.btrfs.subvolumeCreate("/storage/polipo_cache")            
+        self.cuisine.btrfs.subvolumeCreate("/storage/polipo_cache")
 
         self.cuisine.package.install("polipo")
 
@@ -245,10 +245,8 @@ class CuisineProxy:
             self.cuisine.core.file_write("/etc/apt/apt.conf",f)
         else:
             raise RuntimeError("not implemented yet")
-        from IPython import embed
-        print ("DEBUG NOW configure client")
-        embed()
-        
+        j.application.break_into_jshell("DEBUG NOW configure client")
+
 
 
     def __str__(self):

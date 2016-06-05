@@ -18,9 +18,7 @@ class RepoMilestone(Base):
     @property
     def api(self):
         if self._githubObj is None:
-            from IPython import embed
-            print("DEBUG NOW get api for milestone")
-            embed()
+            j.application.break_into_jshell("DEBUG NOW get api for milestone")
         return self._githubObj
 
     def load(self):

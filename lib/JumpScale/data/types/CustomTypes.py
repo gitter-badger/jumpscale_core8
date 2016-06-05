@@ -198,14 +198,9 @@ class Date(String):
         elif not j.data.types.string.check(v):
             raise ValueError("Input needs to be string:%s"%v)
         elif self._RE_days.fullmatch(value) is not None:
-            from IPython import embed
-            print ("DEBUG NOW day extra")
-            embed()
+            j.application.break_into_jshell("DEBUG NOW day extra")
         elif self._RE_weeks.fullmatch(value) is not None:
-            from IPython import embed
-            print ("DEBUG NOW week extra")
-            embed()
-            
+            j.application.break_into_jshell("DEBUG NOW week extra")
         return v
 
 

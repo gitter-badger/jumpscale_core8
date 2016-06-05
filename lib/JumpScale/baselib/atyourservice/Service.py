@@ -47,7 +47,6 @@ class Service:
     def __init__(self, aysrepo, servicerecipe=None, instance=None, path="", args={}, originator=None, parent=None, model=None):
         """
         """
-
         self.aysrepo = aysrepo
 
         if args is None:
@@ -139,13 +138,7 @@ class Service:
                 self._hrd = "EMPTY"
 
             if model is not None:
-                self._hrd = "EMPTY"
-                if j.data.types.dict.check(model):
-                    self._model = model
-                    model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
-                    j.data.serializer.yaml.dump(model_path, model)
-                else:
-                    raise NotImplementedError("only support yaml format at the moment")
+                self.model = model
 
             self.hrd  # create empty hrd
 
@@ -248,6 +241,16 @@ class Service:
             if j.sal.fs.exists(model_path):
                 self._model = j.data.serializer.yaml.loads(j.sal.fs.fileGetContents(model_path))
         return self._model
+
+    @model.setter
+    def model(self, model):
+        self._hrd = "EMPTY"
+        if j.data.types.dict.check(model):
+            self._model = model
+            model_path = j.sal.fs.joinPaths(self.path, "model.yaml")
+            j.data.serializer.yaml.dump(model_path, model)
+        else:
+            raise NotImplementedError("only support yaml format at the moment")
 
     @property
     def producers(self):
@@ -697,9 +700,7 @@ class Service:
     #         return None
     #     action=j.actions.add(method, kwargs={"ayskey":self.key}, die=True, stdOutput=False, \
     #             errorOutput=False, executeNow=True,force=True, showout=False, actionshow=True,selfGeneratorCode='selfobj=None')
-    #     from IPython import embed
-    #     print ("DEBUG NOW runaction")
-    #     embed()
+    #     j.application.break_into_jshell("DEBUG NOW runaction")
 
     #     return action
 
@@ -711,9 +712,7 @@ class Service:
     #     method=self._getActionMethodNode(name)
     #     if method==None:
     #         return None
-    #     from IPython import embed
-    #     print ("DEBUG NOW runaction node")
-    #     embed()
+    #     j.application.break_into_jshell("DEBUG NOW runaction node")
     #     return action
 
     # def _getActionMethodMgmt(self,action):

@@ -105,9 +105,7 @@ class DebugSSHNode:
     @property
     def platformType(self):
         if self._platformType != None:
-            from IPython import embed
-            print("platformtype")
-            embed()
+            j.application.break_into_jshell("platformtype")
         return self._platformType
 
 

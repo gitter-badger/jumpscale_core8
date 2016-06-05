@@ -52,6 +52,11 @@ class Application:
         self._debug = value
         j.do.debug = value
 
+    def break_into_jshell(self, msg="DEBUG NOW"):
+        if self.debug is True:
+            print(msg)
+            from IPython import embed;embed()
+
     def init(self):
         j.errorconditionhandler.setExceptHook()
 

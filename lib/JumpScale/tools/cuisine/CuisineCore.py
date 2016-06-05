@@ -1049,9 +1049,8 @@ class CuisineCore:
                 if out.lower().find("fatal error")!=-1 and out.lower().find("python.h")!=-1 \
                             and out.lower().find("no such")!=-1\
                             and not "pythondevel" in self.done:
-                    from IPython import embed
-                    self.logger.error("DEBUG NOW pythondevel not found")
-                    embed()
+
+                    j.application.break_into_jshell("DEBUG NOW pythondevel not found")
 
                     self.done.append("pythondevel")
                     self.cuisine.installer.pythonDevelop()

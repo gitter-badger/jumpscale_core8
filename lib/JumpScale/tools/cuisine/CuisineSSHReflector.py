@@ -41,10 +41,8 @@ class CuisineSSHReflector:
 
         self.cuisine.core.dir_ensure("/home/sshreflector/.ssh", recursive=True, mode=None, owner="sshreflector", group="sshreflector")
 
-        from IPython import embed
-        print ("DEBUG NOW reflector")
-        embed()
-        
+        j.application.break_into_jshell("DEBUG NOW reflector")
+
         lpath=os.environ["HOME"]+"/.ssh/reflector"
         path="/home/sshreflector/.ssh/reflector"
         ftp=self.cuisine.core.executor.sshclient.getSFTP()

@@ -18,12 +18,12 @@ class Session:
     def delWindow(self,name):
         windows=self.mgmt.list_windows()
         if len(windows)<2:
-            self.getWindow(name="ignore",removeIgnore=False)                
+            self.getWindow(name="ignore",removeIgnore=False)
         for w in self.mgmt.windows:
             wname=w.get("window_name")
             if name ==wname:
                 w.kill_window()
-        self.reload()           
+        self.reload()
 
     def existsWindow(self,name):
         for window in self.windows:
@@ -33,7 +33,7 @@ class Session:
 
     def getWindow(self,name,start_directory=None,attach=False,reset=False,removeIgnore=True):
 
-        # from pudb import set_trace; set_trace()   
+        # from pudb import set_trace; set_trace()
         if reset:
             self.delWindow(name)
 
@@ -92,8 +92,8 @@ class Window:
             if pane.id==id:
                 return True
         return False
-            
-            
+
+
     def getPane(self,name,killothers=False):
         """
        if there is only 1 and name is not same then name will be set
@@ -109,13 +109,13 @@ class Window:
                             pane2.kill()
                 return pane
         raise j.exceptions.RuntimeError("Could not find pane:%s.%s"%(self.name,name))
-            
-        
+
+
     def select(self):
         self.mgmt.select_window()
 
     def kill(self):
-        # from pudb import set_trace; set_trace()    
+        # from pudb import set_trace; set_trace()
         if len(self.session.windows.keys())<2:
             self.session.getWindow(name="ignore")
         print ("KILL %s"%self.name)
@@ -135,7 +135,7 @@ class Pane:
         self.window=window
 
     def select(self):
-        self.mgmt.select_pane()        
+        self.mgmt.select_pane()
 
     def _split(self,name,ext="-v"):
         self.select()
@@ -182,7 +182,7 @@ class Tmux:
             s.list_sessions()
         return s
 
-    
+
     def getSession(self,name,reset=False, attach=False,firstWindow=""):
         if reset and name in self.sessions:
             self.sessions[name].kill()
@@ -192,7 +192,7 @@ class Tmux:
 
         print ("create session:%s"%name)
 
-        
+
         s=self._getServer(name,firstWindow=firstWindow)
 
         if reset:
@@ -215,7 +215,7 @@ class Tmux:
 
     def createPanes4Actions(self,sessionName="main",windowName="actions",reset=True):
         session=self.getSession(sessionName,firstWindow="main")
-        window=session.getWindow(windowName,reset=reset) 
+        window=session.getWindow(windowName,reset=reset)
 
         main=window.getPane(name="main",killothers=True)
 
@@ -225,14 +225,7 @@ class Tmux:
         o3=cmds.splitHorizontal("o3")
         o1=cmds
         o1.name="o1"
-        
+
         o2=o1.splitHorizontal("o2")
         o4=o3.splitHorizontal("o4")
-
-        from IPython import embed
-        print ("DEBUG NOW oioioi")
-        embed()
-        
-
-
-
+        j.application.break_into_jshell("DEBUG NOW oioioi")

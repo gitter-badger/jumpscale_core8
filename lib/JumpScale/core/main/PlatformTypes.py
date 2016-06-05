@@ -141,32 +141,31 @@ class PlatformType:
 
     @property
     def osname(self):
-        if self._osname=="":
+        if self._osname == "":
+            self._osversion=""
             self.uname
-            self._osname=self._osname0.lower()
+            self._osname = self._osname0.lower()
             if self._osname not in ["darwin"]:
-                rc, out = self.executor.cuisine.core.run("lsb_release -a",showout=False, replaceArgs=False, die=False,action=False)
 
-                if rc != 0:
-                    packagemanagers = {'pacman': 'arch', 'apt-get': 'ubuntu', 'yum': 'fedora'}
-                    for packagemanager, osname in packagemanagers.items():
-                        rc, _ = self.executor.cuisine.core.run("which %s" % packagemanager, showout=False, replaceArgs=False, die=False,action=False)
-                        if rc == 0:
-                            self._osname = osname
-                            return self._osname
-                if "ubuntu" in out.lower():
-                    self._osname="ubuntu"
-                elif "debian" in out.lower():
-                    self._osname="debian"
-                elif 'arch' in out.lower():
-                    self._osname="arch"
+                rc, lsbcontent = self.executor.cuisine.core.run("cat /etc/lsb-release", replaceArgs=False, action=False, showout=False, die=False)
+                if rc == 0:
+                    import re
+                    try:
+                        self._osname = re.findall("DISTRIB_ID=(\w+)", lsbcontent)[0].lower()
+                        self._osversion = re.findall("DISTRIB_RELEASE=([\w.]+)", lsbcontent)[0].lower()
+                    except IndexError as e:
+                        raise RuntimeError("Can't parse /etc/lsb-release")
                 else:
-                    raise j.exceptions.RuntimeError("Could not define os version")
-
-                for line in out.split("\n"):
-                    if line.lower().startswith("release"):
-                        pre,post=line.split(":")
-                        self._osversion=post.strip()
+                    pkgman2dist = {'pacman':'arch', 'apt-get': 'ubuntu', 'yum':'fedora'}
+                    for pkgman, dist in pkgman2dist.items():
+                        rc, _ = self.executor.cuisine.core.run("which %s" % pkgman, showout=False, replaceArgs=False, die=False,
+                                                               action=False)
+                        if rc == 0:
+                            self._osname = pkgman2dist[pkgman]
+                            self._osversion = "unknown"
+                            break
+                    else:
+                        raise j.exceptions.RuntimeError("Couldn't define os version.")
 
         return self._osname
 

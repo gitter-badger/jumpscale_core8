@@ -356,13 +356,12 @@ class AtYourServiceRepo():
         self._doinit()
         producerRoles=self._processProducerRoles(producerRoles)
 
-        if force:
-            self.setState(actions=[action],role=role,instance=instance,state="DO")
-
         if action not in ["init"]:
             for key,s in self.services.items():
                 if s.state.get("init")!="OK":
                     raise j.exceptions.Input("Cannot get run: %s:%s:%s because found a service not properly inited yet:%s, please rerun ays init"%(role,instance,action,s))
+        if force:
+            self.setState(actions=[action],role=role,instance=instance,state="DO")
 
         if action=="init":
             actions=["init"]
@@ -458,10 +457,8 @@ class AtYourServiceRepo():
     #     step = 1
     #     while todo != []:
 
-    #         if ask:
-    #             from IPython import embed
-    #             print ("DEBUG NOW ask in do, filter items")
-    #             embed()
+            # if ask:
+                # j.application.break_into_jshell("DEBUG NOW ask in do, filter items")
 
 
     #         print("execute state changes, nr services to process: %s in step:%s" % (len(todo), step))

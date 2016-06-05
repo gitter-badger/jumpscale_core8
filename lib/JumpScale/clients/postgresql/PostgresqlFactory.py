@@ -112,7 +112,7 @@ class PostgresClient:
             print("process table:%s"%name)
             args["table"]=name
             args["path"]="%s/%s.sql"%(path,name)
-            #--quote-all-identifiers 
+            #--quote-all-identifiers
             cmd="cd /opt/postgresql/bin;./pg_dump -U %(login)s -h %(ipaddr)s -p %(port)s -t %(table)s -a -b --column-inserts -d %(dbname)s -w > %(path)s"%(args)
             # print cmd
             j.sal.process.execute(cmd,outputToStdout=False)
@@ -147,31 +147,27 @@ class PostgresClient:
         j.sal.fs.createDir(path)
         base,session=self.initsqlalchemy()
         for name,obj in list(base.classes.items()):
-            out=""  
+            out=""
             if name in tablesIgnore:
                 continue
             print("process table:%s"%name)
-            j.sal.fs.createDir("%s/%s"%(path,name))          
-            for record in session.query(obj):                
-                r=record.__dict__    
-                idfound=None            
+            j.sal.fs.createDir("%s/%s"%(path,name))
+            for record in session.query(obj):
+                r=record.__dict__
+                idfound=None
                 for name2,val in list(r.items()):
                     if name in fieldsIgnore:
                         if name2 in fieldsIgnore[name]:
                             continue
                     if name2[0]=="_":
                         continue
-                    
+
                     if name in fieldsId:
                         if name2 == fieldsId[name]:
                             idfound=name2
                         else:
                             if isinstance( fieldsId[name],list):
-                                from IPython import embed
-                                print("DEBUG NOW complete code, we need to aggregate key from 2 fields ")
-                                embed()
-                                p
-                                
+                                j.application.break_into_jshell("DEBUG NOW complete code, we need to aggregate key from 2 fields ")
                     elif name2.lower()=="name":
                         idfound=name2
                     elif name2.lower()=="id":
@@ -179,9 +175,9 @@ class PostgresClient:
                     elif name2.lower()=="uuid":
                         idfound=name2
                     elif name2.lower()=="guid":
-                        idfound=name2      
+                        idfound=name2
                     elif name2.lower()=="oid":
-                        idfound=name2 
+                        idfound=name2
 
 
                     if name in fieldRewriteRules:
@@ -201,22 +197,17 @@ class PostgresClient:
                     elif isinstance(val,str):
                         out+="%s = '%s'\n"%(name2,val.decode("utf8", "strict"))
                     elif isinstance(val,datetime.date):
-                        out+="%s = %s #%s\n"%(name2,int(time.mktime(val.timetuple())),str(val))                        
+                        out+="%s = %s #%s\n"%(name2,int(time.mktime(val.timetuple())),str(val))
                     else:
-                        from IPython import embed
-                        print ("DEBUG NOW psycopg2dumpall2hrd")
-                        embed()
-                        p
-                
+                        j.application.break_into_jshell("DEBUG NOW psycopg2dumpall2hrd")
+
                 if idfound==None:
-                    from IPython import embed
-                    print("DEBUG NOW could not find id for %s in psycopg2dumpall2hrd"%r)
-                    embed()
-                   
+                    j.application.break_into_jshell("DEBUG NOW could not find id for %s in psycopg2dumpall2hrd"%r)
+
                 print("process record:%s"%r[idfound])
                 hrd=j.data.hrd.get(content=out,path="%s/%s/%s.hrd"%(path,name,str(r[idfound]).replace("/","==")))
                 hrd.save()
-                
+
 
     # def _html2text(self, html):
     #     return j.tools.html.html2text(html)
@@ -228,10 +219,10 @@ class PostgresClient:
     #     postgres_time_epoch = calendar.timegm(postgres_time_struct)
     #     return postgres_time_epoch
 
-    # def _eptochToPostgresTime(self,time_epoch): 
+    # def _eptochToPostgresTime(self,time_epoch):
     #     time_struct = time.gmtime(time_epoch)
     #     time_formatted = time.strftime('%Y-%m-%d %H:%M:%S', time_struct)
-    #     return time_formatted     
+    #     return time_formatted
 
     # def deleteRow(self,tablename,whereclause):
     #     Q="DELETE FROM %s WHERE %s"%(tablename,whereclause)
@@ -239,9 +230,9 @@ class PostgresClient:
     #     result = self.client.use_result()
     #     if result!=None:
     #         result.fetch_row()
-            
-    #     return result      
-        
+
+    #     return result
+
     # def select1(self,tablename,fieldname,whereclause):
     #     Q="SELECT %s FROM %s WHERE %s;"%(fieldname,tablename,whereclause)
     #     result=self.queryToListDict(Q)
@@ -251,7 +242,7 @@ class PostgresClient:
     #         # from IPython import embed
     #         # print "DEBUG NOW select1"
     #         # embed()
-            
+
     #         return result
 
     # def queryToListDict(self,query):
@@ -265,12 +256,12 @@ class PostgresClient:
 
     #     resultout=[]
     #     while True:
-    #         row=result.fetch_row()    
+    #         row=result.fetch_row()
     #         if len(row)==0:
     #             break
     #         row=row[0]
     #         rowdict={}
-    #         for colnr in range(0,len(row)):        
+    #         for colnr in range(0,len(row)):
     #             colname=fields[colnr]
     #             if colname.find("dt__")==0:
     #                 colname=colname[4:]
@@ -293,12 +284,11 @@ class PostgresClient:
     #                     raise j.exceptions.RuntimeError("Could not decide what value for bool:%s"%col)
     #             elif colname.find("html__")==0:
     #                 colname=colname[6:]
-    #                 col=self._html2text(row[colnr])                    
+    #                 col=self._html2text(row[colnr])
     #             else:
     #                 col=row[colnr]
-                    
+
     #             rowdict[colname]=col
     #         resultout.append(rowdict)
 
     #     return resultout
-

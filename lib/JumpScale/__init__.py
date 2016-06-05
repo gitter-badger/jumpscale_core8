@@ -96,9 +96,9 @@ j.portal.tools = Loader('j.portal.tools')
 
 
 
-from .InstallTools import InstallTools
+from .InstallTools import InstallTools, do
 from .InstallTools import Installer
-j.do=InstallTools()
+j.do=do
 j.do.installer=Installer()
 
 

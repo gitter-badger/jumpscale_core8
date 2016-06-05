@@ -14,9 +14,7 @@ class User(Base):
     @property
     def api(self):
         if self._githubObj is None:
-            from IPython import embed
-            print("DEBUG NOW get api for user")
-            embed()
+            j.application.break_into_jshell("DEBUG NOW get api for user")
         return self._githubObj
 
     def load(self):
