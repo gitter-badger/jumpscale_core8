@@ -1627,7 +1627,10 @@ class SystemFS:
                 if j.sal.fs.isDir(dirname):
                     j.sal.fs.renameDir(dirname,dirname2)
         arg={}
-        os.walk(rootdir, visit,arg)
+
+        for dirpath, dirs, files in os.walk(rootdir):
+            visit(None, dirpath, dirs+files)
+        #os.walk(rootdir, visit,arg)
 
     def convertFileDirnamesSpaceToUnderscore(self,rootdir):
         def visit(arg,dirname,names):
@@ -1637,7 +1640,10 @@ class SystemFS:
                 if j.sal.fs.isDir(dirname):
                     j.sal.fs.renameDir(dirname,dirname2)
         arg={}
-        os.walk(rootdir, visit,arg)
+
+        for dirpath, dirs, files in os.walk(rootdir):
+            visit(None, dirpath, dirs+files)
+
 
     def getTmpDirPath(self):
         """
