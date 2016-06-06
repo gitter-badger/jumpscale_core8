@@ -19,11 +19,11 @@ class TestCuisineFactory(unittest.TestCase):
         Test creating a factory instance
         """
         with mock.patch("JumpScale.j") as j_mock:
-                from JumpScale import j
-                import JumpScale.tools.cuisine.CuisineFactory
-                JumpScale.tools.cuisine.CuisineFactory.j = j
-                from JumpScale.tools.cuisine.CuisineFactory import JSCuisineFactory
-                factory = JSCuisineFactory()
+            from JumpScale import j
+            import JumpScale.tools.cuisine.CuisineFactory
+            JumpScale.tools.cuisine.CuisineFactory.j = j
+            from JumpScale.tools.cuisine.CuisineFactory import JSCuisineFactory
+            factory = JSCuisineFactory()
 
 
     def test_get_local(self):
