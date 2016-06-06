@@ -4,7 +4,7 @@ import re
 
 # requires sshfs package
 class SshFS:
-    self.logger = j.logger.get('j.sal.cloudfs.Cifs')
+
     server = None
     directory = None
     share = None
@@ -19,7 +19,7 @@ class SshFS:
         """
         Initialize connection
         """
-
+        self.logger = j.logger.get('j.sal.cloudfs.Cifs')
         self.is_dir = is_dir
         self.recursive = recursive
         self.end_type = end_type

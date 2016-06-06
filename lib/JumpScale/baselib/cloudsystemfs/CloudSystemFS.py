@@ -17,7 +17,6 @@ class CloudSystemFS:
     def __init__(self):
         self.__jslocation__ = "j.sal.cloudfs"
         self.logger = j.logger.get("j.sal.cloudfs")
-        pass
 
     def sourcePathExists(self, sourcepath):
         src_fs = self._getSourceHandler(sourcepath)

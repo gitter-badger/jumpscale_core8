@@ -12,7 +12,7 @@ CHUNKSIZE=8192
 
 # FIXME: HTTP basic authentication support
 class HttpFS:
-    self.logger = j.logger.get('j.sal.cloudfs.HTTPFS')
+
     server = None
     path = None
     filename = None
@@ -25,6 +25,7 @@ class HttpFS:
         """
         Initialize connection
         """
+        self.logger = j.logger.get('j.sal.cloudfs.HTTPFS')
         self.logger.info("HttpFS: connection information: server [%s] path [%s]" % (server,path))
         self.filename = j.sal.fs.getBaseName(path)
         self.tempdir=tempdir

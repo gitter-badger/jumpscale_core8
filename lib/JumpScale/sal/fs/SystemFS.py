@@ -443,13 +443,14 @@ class SystemFS:
         """Recursively delete a directory tree.
             @param path: the path to be removed
         """
+        if path is None:
+            raise ValueError('Path is None in system.fs.removeDir')
         self.logger.debug('Removing directory tree with path: %s'%path)
         if self.isLink(path):
             self.remove(path)
         if self.isFile(path):
             self.remove(path)
-        if path is None:
-            raise ValueError('Path is None in system.fs.removeDir')
+
         if(j.sal.fs.exists(path)):
             if(self.isDir(path)):
                 if onlyLogWarningOnRemoveError:

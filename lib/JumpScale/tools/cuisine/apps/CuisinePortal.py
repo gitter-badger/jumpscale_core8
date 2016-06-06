@@ -17,7 +17,8 @@ class CuisinePortal:
         self.portal_dir = self.cuisine.core.args_replace('$appDir/portals/')
         self.main_portal_dir = j.sal.fs.joinPaths(self.portal_dir, 'main')
 
-    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
+    @actionrun(action=True)
+    def _install(self, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
         """
         grafanaip and port should be the external ip of the machine
         Portal install will only install the portal and libs. No spaces but the system ones will be add by default.
@@ -33,6 +34,9 @@ class CuisinePortal:
         self.linkCode()
         self.serviceconnect(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip,
                             influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport)
+
+    def install(self, start=True, mongodbip="127.0.0.1", mongoport=27017, influxip="127.0.0.1", influxport=8086, grafanaip="127.0.0.1", grafanaport=3000, login="", passwd=""):
+        self._install(mongodbip=mongodbip, mongoport=mongoport, influxip=influxip, influxport=influxport, grafanaip=grafanaip, grafanaport=grafanaport, login=login, passwd=passwd)
         if start:
             self.start()
 
@@ -177,11 +181,13 @@ class CuisinePortal:
         self.cuisine.core.file_write(j.sal.fs.joinPaths(self.main_portal_dir, 'config.hrd'), content=str(configHRD))
         self.cuisine.core.file_copy("%s/jslib/old/images" % self.portal_dir, "%s/jslib/old/elfinder" % self.portal_dir, recursive=True)
 
+    @actionrun(action=True)
     def addSpace(self, spacepath):
         spacename = j.sal.fs.getBaseName(spacepath)
         dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths['varDir'], 'cfg', 'portals', 'main', 'base', spacename)
         self.cuisine.core.file_link(spacepath, dest_dir)
 
+    @actionrun(action=True)
     def addActor(self, actorpath):
         actorname = j.sal.fs.getBaseName(actorpath)
         dest_dir = j.sal.fs.joinPaths(self.cuisine.core.dir_paths['varDir'], 'cfg', 'portals', 'main', 'base', actorname)

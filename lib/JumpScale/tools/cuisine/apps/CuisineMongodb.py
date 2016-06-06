@@ -24,7 +24,7 @@ class Mongodb:
         self.cuisine = cuisine
 
     @actionrun(action=True)
-    def build(self, start=True):
+    def _build(self):
         self.cuisine.installer.base()
         exists = self.cuisine.core.command_check("mongod")
 
@@ -57,6 +57,8 @@ class Mongodb:
 
         self.cuisine.core.dir_ensure('$varDir/data/mongodb')
 
+    def build(self, start=True):
+        self._build()
         if start:
             self.start("mongod")
 

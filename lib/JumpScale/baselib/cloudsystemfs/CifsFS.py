@@ -4,7 +4,7 @@ import re
 
 # requires smbfs package
 class CifsFS:
-    self.logger = j.logger.get("j.sal.cloudfs.Cifs")
+
     server = None
     share = None
     end_type = None
@@ -23,6 +23,7 @@ class CifsFS:
         """
         Initialize connection
         """
+        self.logger = j.logger.get("j.sal.cloudfs.Cifs")
         self.logger.info('starting CIFS with %s' %share)
         self.is_dir     = is_dir
         self.is_mounted = False

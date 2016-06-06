@@ -23,7 +23,8 @@ class Influxdb:
         self.executor = executor
         self.cuisine = cuisine
 
-    def build(self, start=True):
+    @actionrun(action=True)
+    def _build(self):
         self.cuisine.installer.base()
 
         if self.cuisine.core.isMac:
@@ -32,16 +33,18 @@ class Influxdb:
         if self.cuisine.core.isUbuntu:
             self.cuisine.core.dir_ensure("$tmplsDir/cfg/influxdb")
             C= """
-cd $tmpDir
-wget https://s3.amazonaws.com/influxdb/influxdb-0.10.0-1_linux_amd64.tar.gz
-tar xvfz influxdb-0.10.0-1_linux_amd64.tar.gz
-cp influxdb-0.10.0-1/usr/bin/influxd $binDir
-cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
+    cd $tmpDir
+    wget https://s3.amazonaws.com/influxdb/influxdb-0.10.0-1_linux_amd64.tar.gz
+    tar xvfz influxdb-0.10.0-1_linux_amd64.tar.gz
+    cp influxdb-0.10.0-1/usr/bin/influxd $binDir
+    cp influxdb-0.10.0-1/etc/influxdb/influxdb.conf $tmplsDir/cfg/influxdb/influxdb.conf"""
             C = self.cuisine.bash.replaceEnvironInText(C)
             C = self.cuisine.core.args_replace(C)
             self.cuisine.core.run_script(C, profile=True, action=True)
             self.cuisine.bash.addPath(self.cuisine.core.args_replace("$binDir"), action=True)
 
+    def build(self, start=True):
+        self._build()
         if start:
             self.start()
 

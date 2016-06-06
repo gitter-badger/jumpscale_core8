@@ -1,6 +1,5 @@
 from JumpScale import j
 from ActionDecorator import ActionDecorator
-import json
 
 
 class actionrun(ActionDecorator):
@@ -25,7 +24,7 @@ class Domain:
         self.cuisine = cuisine
         self.name = name
         if content:
-            self.content = json.loads(content)
+            self.content = j.data.serializer.json.loads(content)
             if "ttl" in self.content:
                 self.ttl = self.content["ttl"]
             if "max_hosts" in self.content:
@@ -103,6 +102,7 @@ class Domain:
         return self._cname_records.pop(subdomain)
 
     def save(self):
+        self.content = {"data": {"": {}}}
         for key, val in self._a_records.items():
             self.add_subdomain(key)
             self.content["data"][key]["a"] = val
@@ -114,7 +114,7 @@ class Domain:
         self.content["serial"] = self.serial
         self.content["max_hosts"] = self.max_hosts
         self.content["data"][""]["ns"] = self.ns
-        config = json.dumps(self.content)
+        config = j.data.serializer.json.dumps(self.content)
         self.cuisine.core.file_write("$cfgDir/geodns/dns/%s.json" % self.name, config)
         return config
 
@@ -140,6 +140,7 @@ class CuisineGeoDns:
         # moving files and creating config
         self.cuisine.core.file_copy("$goDir/bin/geodns", "$binDir")
         self.cuisine.core.dir_ensure("$tmplsDir/cfg/geodns/dns", recursive=True)
+        self.cuisine.bash.addPath('$binDir')
 
         self.cuisine.core.file_copy(
             "$tmplsDir/cfg/geodns", "$cfgDir/", recursive=True)
@@ -150,7 +151,7 @@ class CuisineGeoDns:
         """
         if self.cuisine.core.dir_exists(config_dir):
             self.cuisine.core.dir_ensure(config_dir)
-        cmd = "./geodns -interface %s -port %s -config=%s -identifier=%s -cpus=%s" % (ip, str(port), config_dir, identifier, str(cpus))
+        cmd = "$binDir/geodns -interface %s -port %s -config=%s -identifier=%s -cpus=%s" % (ip, str(port), config_dir, identifier, str(cpus))
         if tmux:
             pm = self.cuisine.processmanager.get("tmux")
             pm.ensure(name=identifier, cmd=cmd, env={}, path="$binDir")
@@ -162,6 +163,15 @@ class CuisineGeoDns:
         stop geodns server with @name
         """
         self.cuisine.processmanager.stop(name)
+
+    @property
+    def domains(self):
+        domains = []
+        if self.cuisine.core.file_exists('$cfgDir/geodns/dns'):
+            for path in self.cuisine.core.fs_find('$cfgDir/geodns/dns/',type='f', pattern='*.json', recursive=False):
+                basename = j.sal.fs.getBaseName(path)
+                domains.append(basename.rstrip('.json'))
+        return domains
 
     def ensure_domain(self, domain_name, serial=None,  ttl=None, content=None, max_hosts=2,  a_records={}, cname_records={}, ns=[]):
         """
@@ -179,7 +189,7 @@ class CuisineGeoDns:
         domain_instance = Domain(domain_name, self.cuisine, serial, ttl, content, max_hosts, a_records, cname_records, ns)
         domain_instance.save()
         return domain_instance
-    
+
     def get_domain(self, domain_name):
         """
         get domain object with dict of relevant records
@@ -190,17 +200,17 @@ class CuisineGeoDns:
 
     def del_domain(self, domain_name):
         """
-        delete domain object 
+        delete domain object
         """
         self.cuisine.core.dir_remove("$cfgDir/geodns/dns/%s.json" % domain_name)
 
     def add_record(self, domain_name, subdomain, record_type, value, weight=100):
         """
-        @domain_name = domin object name : string 
-        @subdomain = subdomain assigned to record : string 
-        @record_type = cname or a :string 
-        @value = ip or cname : string 
-        @weight = recurrence on request : int 
+        @domain_name = domin object name : string
+        @subdomain = subdomain assigned to record : string
+        @record_type = cname or a :string
+        @value = ip or cname : string
+        @weight = recurrence on request : int
         """
         domain_instance = self.get_domain(domain_name)
         if record_type == "a":
@@ -210,10 +220,10 @@ class CuisineGeoDns:
         return domain_instance.save()
 
 
-    
+
     def get_record(self, domain_name, record_type, subdomain=None):
         """
-        returns a dict of record/s and related subdomains within domain 
+        returns a dict of record/s and related subdomains within domain
         """
         domain_instance = self.get_domain(domain_name)
         if record_type == "a":
@@ -232,5 +242,3 @@ class CuisineGeoDns:
         if record_type == "cname":
             domain_instance.del_cname_record(subdomain, value)
         return domain_instance.save()
-
-

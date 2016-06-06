@@ -4,7 +4,7 @@ import os
 
 # maybe this could be switched to http://curlftpfs.sourceforge.net/
 class FtpFS:
-    self.logger = j.logger.get('j.sal.cloudfs.FtpFS')
+
     server = None
     path = None
     filename = None
@@ -20,6 +20,7 @@ class FtpFS:
         """
         Initialize connection
         """
+        self.logger = j.logger.get('j.sal.cloudfs.FtpFS')
         self.logger.info("FtpFS: connection information: server [%s] path [%s] username [%s] password [%s]" % (server,path,username,password))
 
         self.end_type = end_type
