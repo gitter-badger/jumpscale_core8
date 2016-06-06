@@ -3,6 +3,8 @@ from JumpScale import j
 
 
 class CiscoSwitchManager:
+    def __init__(self):
+        self.__jslocation__="j.sal.ciscoswitch"
 
     def get(self, host, login,password):
         return CiscoSwitch(host, login,password)
@@ -13,8 +15,6 @@ from Router import Router
 class CiscoSwitch:
 
     def __init__(self, host, login,password):
-
-        self.__jslocation__="j.sal.ciscoswitch"           
 
         R1 = Router(hostname=host, logfile='cisco.log')
         login_cmd = 'telnet ' + host

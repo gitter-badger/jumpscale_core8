@@ -58,7 +58,7 @@ class Cockpit():
         self.cuisine.pip.multiInstall(deps, upgrade=True)
 
     def link_code(self):
-        self.cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/app/', '$appDir/cockpit')
+        self.cuisine.core.file_link('$codeDir/github/jumpscale/jscockpit/jscockpit/', '$appDir/cockpit')
 
     def create_config(self, bot_token, jwt_key, organization, client_secret, client_id, redirect_uri, itsyouonlinehost='https://itsyou.online'):
         cfg = {
