@@ -48,7 +48,7 @@ class WindowsSystem:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.windows"
-        self.logger j .logger.get("j.sal.windows")
+        self.logger = j.logger.get("j.sal.windows")
         self.__dict__ = self.__shared_state
 
 

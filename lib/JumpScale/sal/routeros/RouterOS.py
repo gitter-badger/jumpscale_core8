@@ -11,8 +11,9 @@ class RouterOSFactory:
         return RouterOS(host, login,password)
 #!/usr/bin/python
 
-import sys, posix, time, md5, binascii, socket, select
+import sys, posix, time, binascii, socket, select
 import netaddr
+from hashlib import md5
 
 class ApiRos:
     "Routeros api"
