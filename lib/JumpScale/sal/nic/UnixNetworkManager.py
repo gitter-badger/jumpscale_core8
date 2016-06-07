@@ -17,7 +17,7 @@ class UnixNetworkManager:
 
     def __init__(self):
         self.__jslocation__ = "j.sal.nic"
-        self.logger("j.sal.nic")
+        self.logger = j.logger.get("j.sal.nic")
         self._executor = j.tools.executor.getLocal()
         self._nics = None
 
