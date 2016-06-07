@@ -1060,7 +1060,7 @@ def runDaemon(commandline, stdout=None, stderr=None, user=None, group=None,
     if group is not None:
         logmessage.append('setgid to group %s' % str(group))
     logmessage = ', '.join(logmessage)
-    j.sal.process.info(logmessage)
+    j.sal.process.logger.info(logmessage)
 
     uid, gid = _convert_uid_gid(user, group)
 
@@ -1117,7 +1117,7 @@ def runDaemon(commandline, stdout=None, stderr=None, user=None, group=None,
     if 'GID' in processdata:
         logmessage.append('GID is %d' % int(processdata['GID']))
     logmessage = ', '.join(logmessage)
-    j.sal.process.debug(logmessage)
+    j.sal.process.logger.debug(logmessage)
 
     return childpid
 

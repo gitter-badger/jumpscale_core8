@@ -586,7 +586,7 @@ class WindowsSystem:
         serviceName = 'pgsql-8.3'
         displayName = serviceName
         binDir = j.sal.fs.joinPaths(j.dirs.base, 'apps','postgresql8', 'bin')
-        pgDataDir = j.sal.fs.joinPathso.dirs.baseDir, 'apps','postgresql8', 'Data')
+        pgDataDir = j.sal.fs.joinPaths(j.dirs.baseDir, 'apps','postgresql8', 'Data')
         j.system.windows.createService(serviceName, displayName , '%s\\pg_ctl.exe','runservice -W -N %s -D %s'%(serviceName, pgDataDir))
         """
         self.logger.info('Creating Service %s'%serviceName)
@@ -932,7 +932,7 @@ class WindowsSystem:
         if j.sal.fs.isDir(dirPath):
             self.grantAccessToFile(dirPath, userName)
 
-            for subDir in j.sal.fs.WalkExtended(dirPath, recurse=1):
+            for subDir in j.sal.fs.walkExtended(dirPath, recurse=1):
                 self.grantAccessToFile(subDir, userName)
         else:
             self.logger.info('%s is not a valid directory'%dirPath)
@@ -971,7 +971,7 @@ class WindowsSystem:
             if j.sal.fs.isDir(dirPath):
                 if force:
                     fileMode = win32file.GetFileAttributesW(dirPath)
-                    for file in j.sal.fs.Walk(dirPath,recurse=1):
+                    for file in j.sal.fs.walk(dirPath,recurse=1):
                         self.logger.info('Changing attributes on %s'%fileMode)
                         win32file.SetFileAttributesW(file, fileMode &  ~win32file.FILE_ATTRIBUTE_HIDDEN)
                 if errorHandler != None:

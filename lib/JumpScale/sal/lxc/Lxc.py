@@ -309,10 +309,10 @@ ipaddr=
         out+="%s      %s\n"%("127.0.0.1",name)
         j.sal.fs.writeFile(filename=hostspath,contents=out)
 
-        j.sal.netconfig.setRoot(self._get_rootpath(name)) #makes sure the network config is done on right spot
+        j.sal.netconfig.root = self._get_rootpath(name) #makes sure the network config is done on right spot
 
         j.sal.netconfig.reset()
-        j.sal.netconfig.setNameserver(nameserver)
+        j.sal.netconfig.nameserver_set(nameserver)
 
         j.sal.netconfig.root=""#set back to normal
 
@@ -460,7 +460,7 @@ fi
         ed=j.tools.code.getTextFileEditor(machine_cfg_file)
         ed.setSection(netname,config)
 
-        j.sal.netconfig.setRoot(self._get_rootpath(machinename)) #makes sure the network config is done on right spot
+        j.sal.netconfig.root = self._get_rootpath(machinename) #makes sure the network config is done on right spot
         for ipaddr in pubips:        
             j.sal.netconfig.enableInterfaceStatic(dev=netname,ipaddr=ipaddr,gw=gateway,start=False)#do never start because is for lxc container, we only want to manipulate config
         j.sal.netconfig.root=""#set back to normal

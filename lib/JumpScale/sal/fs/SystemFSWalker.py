@@ -12,7 +12,6 @@ class SystemFSWalker:
     def _checkDepth(path,depths,root=""):
         if depths==[]:
             return True
-        #path=j.sal.fs.pathclean(path)
         path=j.sal.fs.pathRemoveDirPart(path,root)
         for depth in depths:
             dname=os.path.dirname(path)

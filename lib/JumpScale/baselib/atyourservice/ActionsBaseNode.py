@@ -112,7 +112,7 @@ class ActionsBaseNode:
             for src in self.service.hrd_template.getListFromPrefix("ubuntu.apt.source"):
                 src = src.replace(";", ":")
                 if src.strip() != "":
-                    j.sal.ubuntu.addSourceUri(src)
+                    j.sal.ubuntu.apt_sources_uri_add(src)
 
             for src in self.service.hrd_template.getListFromPrefix("ubuntu.apt.key.pub"):
                 src = src.replace(";", ":")
@@ -198,8 +198,8 @@ class ActionsBaseNode:
                     j.sal.fs.chmod(path2,0o770)
                     j.sal.process.execute("sv start %s"%name,die=False, outputToStdout=False,outputStderr=False, captureout=False)
                 else:
-                    j.sal.ubuntu.serviceInstall(name, tcmd, pwd=cwd, env=env)
-                    j.sal.ubuntu.startService(name)
+                    j.sal.ubuntu.service_install(name, tcmd, pwd=cwd, env=env)
+                    j.sal.ubuntu.service_start(name)
 
             elif startupmethod=="tmux":
                 j.tools.cuisine.local.tmux.executeInScreen(domain,name,tcmd+" "+targs,cwd=cwd, env=env,user=tuser)#, newscr=True)
@@ -288,7 +288,7 @@ class ActionsBaseNode:
                 j.sal.process.execute("sv stop %s"%name,die=False, outputToStdout=False,outputStderr=False, captureout=False)
             elif startupmethod == "upstart":
                 print("stop through upstart:%s"%name)
-                j.sal.ubuntu.stopService(name)
+                j.sal.ubuntu.stop_service(name)
             elif startupmethod=="tmux":
                 print("stop tmux:%s %s"%(domain,name))
 
@@ -358,7 +358,7 @@ class ActionsBaseNode:
                     else:
                         return False
                 else:
-                    return j.sal.ubuntu.statusService(name)
+                    return j.sal.ubuntu.service_status(name)
             else:
                 ports = self.service.getTCPPorts()
                 timeout = process["timeout_start"]

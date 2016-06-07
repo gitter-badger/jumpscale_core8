@@ -1553,8 +1553,6 @@ class SystemFS:
 
         return result
 
-    #WalkExtended = deprecated('j.sal.fs.WalkExtended','j.sal.fs.walkExtended', '3.2')(walkExtended)
-
     def walk(self, root, recurse=0, pattern='*', return_folders=0, return_files=1, followSoftlinks=True, str=False, depth=None):
         """This is to provide ScanDir similar function
         It is going to be used wherever some one wants to list all files and subfolders

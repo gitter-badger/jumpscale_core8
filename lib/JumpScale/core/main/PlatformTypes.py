@@ -215,7 +215,7 @@ class PlatformType:
 
     def isXen(self):
         '''Checks whether Xen support is enabled'''
-        return j.sal.process.checkProcess('xen') == 0
+        return j.sal.process.checkProcessRunning('xen') == 0
 
     def isVirtualBox(self):
         '''Check whether the system supports VirtualBox'''

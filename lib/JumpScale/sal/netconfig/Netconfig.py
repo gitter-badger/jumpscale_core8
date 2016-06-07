@@ -25,7 +25,8 @@ class Netconfig:
             raise j.exceptions.RuntimeError("Cannot find root for netconfig:%s" % root)
         # set base files
         for item in ["etc/network/interfaces", "etc/resolv.conf"]:
-            self.root.joinpath(item).touch()
+            j.sal.fs.touch(j.sal.fs.joinPaths(self.root, item))
+
 
     def interfaces_shutdown(self, excludes=[]):
         """
@@ -40,7 +41,7 @@ class Netconfig:
                 self._executor.execute(cmd, die=False)
 
     def _getInterfacePath(self):
-        path = self.root.joinpath("etc/network/interfaces")
+        path = j.sal.fs.joinPaths(self.root, "etc/network/interfaces")
         if not path.exists():
             raise j.exceptions.RuntimeError("Could not find network interface path: %s" % path)
         return path

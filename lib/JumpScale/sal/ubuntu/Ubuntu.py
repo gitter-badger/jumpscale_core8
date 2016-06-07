@@ -129,7 +129,7 @@ class Ubuntu:
         will download to tmp if not there yet
         will then install
         """
-        j.sal.fs.changedir(j.dirs.tmpDir) #will go to tmp
+        j.sal.fs.changeDir(j.dirs.tmpDir) #will go to tmp
         path=j.sal.nettools.download(url,"")
         self.deb_install(path)
         if removeDownloaded:
@@ -180,12 +180,12 @@ stop on runlevel [016]
             self._local.execute("initctl reload-configuration")
 
     def service_uninstall(self,servicename):
-        self.stopService(servicename)
+        self.service_stop(servicename)
         j.tools.path.get("/etc/init/%s.conf"%servicename).remove_p()
 
     def service_start(self, servicename):
         self.log.debug("start service on ubuntu for:%s"%servicename)
-        if not self.statusService(servicename):
+        if not self.service_status(servicename):
             cmd="sudo start %s" % servicename
             # print cmd
             return self._local.execute(cmd)
