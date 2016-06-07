@@ -431,7 +431,7 @@ class Netconfig:
             j.sal.netconfig.enableInterface(dev=interface,start=False,dhcp=False)
             j.sal.netconfig.enableInterfaceBridgeStatic(dev="brpub",ipaddr="%s/%s"%(ipaddr,mask),bridgedev=interface,gw=gw,start=True)
 
-            j.sal.netconfig.setNameserver("8.8.8.8")
+            j.sal.netconfig.nameserver_set("8.8.8.8")
 
         except Exception as e:
             print("error in bridgeConfigResetPub:'%s'"%e)            

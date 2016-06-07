@@ -32,7 +32,7 @@ if j.core.platformtype.myplatform.isUnix():
         print("did not find pexpect")
         j.core.platformtype.myplatform.isLinux()
         try:
-            j.sal.ubuntu.install("python-pexpect")
+            j.sal.ubuntu.apt_install("python-pexpect")
         except:
             pass
 

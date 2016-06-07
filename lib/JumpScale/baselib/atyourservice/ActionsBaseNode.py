@@ -131,7 +131,7 @@ class ActionsBaseNode:
                 packages = self.service.hrd_template.getList("ubuntu.packages")
                 packages = [pkg.strip() for pkg in packages if pkg.strip() != ""]
                 if packages:
-                    j.sal.ubuntu.install(" ".join(packages))
+                    j.sal.ubuntu.apt_install(" ".join(packages))
                     # j.sal.process.execute("apt-get install -y -f %s" % " ".join(packages), die=True)
         return True
 
@@ -288,7 +288,7 @@ class ActionsBaseNode:
                 j.sal.process.execute("sv stop %s"%name,die=False, outputToStdout=False,outputStderr=False, captureout=False)
             elif startupmethod == "upstart":
                 print("stop through upstart:%s"%name)
-                j.sal.ubuntu.stop_service(name)
+                j.sal.ubuntu.service_stop(name)
             elif startupmethod=="tmux":
                 print("stop tmux:%s %s"%(domain,name))
 
