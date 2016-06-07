@@ -703,7 +703,7 @@ class GithubRepo:
         with self._lock:
             if self._issues is None:
                 issues = []
-                for item in self.api.get_issues(state=''):
+                for item in self.api.get_issues(state='all'):
                     issues.append(Issue(self, githubObj=item))
 
                 self._issues = issues

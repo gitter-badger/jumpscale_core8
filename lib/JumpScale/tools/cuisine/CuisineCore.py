@@ -663,13 +663,15 @@ class CuisineCore:
     def file_upload_binary(self, local, remote):
         """Uploads (stream) the local file to the remote location"""
         local = self.args_replace(local)
-
-        sftp = self.executor.sshclient.getSFTP()
-
-        output = sftp.open(remote, mode='w+')
-        input = open(local, "rb")
-
-        self._file_stream(input, output)
+        if self.executor.type=="local":
+            if local==remote:
+                return
+            self.file_copy(local,remote)
+        else:
+            sftp = self.executor.sshclient.getSFTP()
+            output = sftp.open(remote, mode='w+')
+            input = open(local, "rb")
+            self._file_stream(input, output)
 
     def file_upload_local(self, local, remote):
         """Uploads the local file to the remote location only if the remote location does not
@@ -1210,10 +1212,10 @@ class CuisineCore:
         # saving locally, uploading, removing locally
         j.sal.fs.writeFile(path, script)
         self.file_upload_binary(path, path)
-        j.sal.fs.remove(path)
 
         out = self.run("python %s" % path)
 
+        j.sal.fs.remove(path)
         self.file_unlink(path)
 
         return out

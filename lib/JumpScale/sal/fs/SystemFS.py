@@ -1601,45 +1601,6 @@ class SystemFS:
                     result = result + self.walk( fullname, recurse, pattern, return_folders, return_files, followSoftlinks, depth=depth)
         return result
 
-    #Walk = deprecated('j.sal.fs.Walk', 'j.sal.fs.walk', '3.2')(walk)
-
-    def convertFileDirnamesUnicodeToAscii(self,rootdir,spacesToUnderscore=False):
-        os.path.supports_unicode_filenames=True
-        def visit(arg,dirname,names):
-            dirname2 = j.data.text.decodeUnicode2Asci(dirname)
-            for name in names:
-                name2 = j.data.text.decodeUnicode2Asci(name)
-                if name2!=name:
-                    ##print "name not unicode"
-                    source = os.path.join(dirname,name)
-                    if spacesToUnderscore:
-                        dirname = dirname.replace(" ","_")
-                        name2 = name2.replace(" ","_")
-                    if os.path.isdir(source):
-                        j.sal.fs.renameDir(source,j.sal.fs.joinPaths(dirname,name2))
-                    if os.path.isfile(source):
-                        #  #print "renamefile"
-                        j.sal.fs.renameFile(source,j.sal.fs.joinPaths(dirname,name2))
-            if dirname2 != dirname:
-                #dirname not unicode
-                ##print "dirname not unicode"
-                if spacesToUnderscore:
-                    dirname2 = dirname2.replace(" ","_")
-                if j.sal.fs.isDir(dirname):
-                    j.sal.fs.renameDir(dirname,dirname2)
-        arg={}
-        os.path.walk(rootdir, visit,arg)
-
-    def convertFileDirnamesSpaceToUnderscore(self,rootdir):
-        def visit(arg,dirname,names):
-            if dirname.find(" ")!=-1:
-                #dirname has space inside
-                dirname2=dirname.replace(" ","_")
-                if j.sal.fs.isDir(dirname):
-                    j.sal.fs.renameDir(dirname,dirname2)
-        arg={}
-        os.path.walk(rootdir, visit,arg)
-
     def getTmpDirPath(self):
         """
         create a tmp dir name and makes sure the dir exists

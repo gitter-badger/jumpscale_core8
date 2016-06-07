@@ -34,7 +34,7 @@ class GitHubFactory:
 class GitHubClient:
 
     def __init__(self, secret):
-        self.api = github.Github(secret)
+        self.api = github.Github(secret, per_page=100)
         self.users = {}
         self.repos = {}
 
