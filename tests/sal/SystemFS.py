@@ -76,6 +76,8 @@ def isascii(filename):
 def isbinary(filename):
     return not isascii(filename)
 
+cur=os.getcwd()
+
 class TestFS(object):
     FILES=['f1.py', 'f2.py', 'f3.py']
     FILE='/tmp/hello.py'
@@ -96,6 +98,7 @@ def inc(x):
 
     #delete the 2 files created.
     def tearDown(self):
+        os.chdir(cur)
         removemany(TestFS.FILES)
         removeone(TestFS.FILE)
 
@@ -444,8 +447,24 @@ def inc(x):
         shutil.rmtree("/tmp/treetocopy")
         shutil.rmtree("/tmp/copiedtree")
 
-    def test_removeDirTree(self):
+
+    def test_replaceWordsInFiles(self):
         os.chdir('/tmp')
+        if not os.path.exists('treetosearch'):
+            os.mkdir('treetosearch')
+            os.mkdir('treetosearch/sub1')
+        writetofile('treetosearch/sub1/file1', "{greet} world")
+        os.mkdir('treetosearch/sub1/sub2')
+        writetofile('treetosearch/sub1/sub2/file1', "{greet}")
+        writetofile('treetosearch/sub1/sub2/file2', "{greet} world")
+        te = j.tools.code.templateengine.new()
+        te.add('greet', 'heyyy')
+        fs.replaceWordsInFiles("/tmp/treetosearch", te)
+
+        shutil.rmtree("/tmp/treetosearch")
+
+    def test_removeDirTree(self):
+        os.chdir("/tmp")
         os.mkdir('treetoremove')
         os.mkdir('treetoremove/sub1')
         os.mkdir('treetoremove/sub1/sub2')
