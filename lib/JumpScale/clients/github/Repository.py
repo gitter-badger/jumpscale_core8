@@ -5,6 +5,7 @@ import copy
 import base64
 import threading
 import collections
+import urllib
 from Milestone import RepoMilestone
 from JumpScale.core.errorhandling.OurExceptions import Input
 from github.GithubException import UnknownObjectException
@@ -417,13 +418,14 @@ class GithubRepo:
             if ms.body.strip() != tocheck.strip():
                 ms.body = tocheck
         else:
-            self._milestones = []
             due = j.data.time.epoch2pythonDateTime(int(j.data.time.any2epoch(deadline)))
             self.logger.info("Create milestone on %s: %s" % (self, title))
             body = getBody(description.strip(), name, owner)
             # workaround for https://github.com/PyGithub/PyGithub/issues/396
-            milestone = self.api.create_milestone(title=title, description=body)  # , due_on=due)
+            milestone = self.api.create_milestone(title=title, description=body)
             milestone.edit(title=title, due_on=due)
+
+            self._milestones.append(RepoMilestone(self, milestone))
 
     def deleteMilestone(self, name):
         if name.strip() == "":
@@ -565,6 +567,8 @@ class GithubRepo:
         if issues == []:
             issues = self.issues
 
+        issues = sorted(issues, key=lambda i: i.number)
+
         dev_repo = False
          # Logic after this point is only for home and org repo
         for typ in ['org_', 'proj_']:
@@ -572,7 +576,8 @@ class GithubRepo:
                 dev_repo = True
                 break
 
-        milestones = collections.OrderedDict([('{m.number}:{m.title}'.format(m=m), m) for m in self.milestones])
+        _ms = [('{m.number}:{m.title}'.format(m=m), m) for m in self.milestones]
+        milestones = collections.OrderedDict(sorted(_ms, key=lambda i: i[1].title))
         report = dict()
 
         for issue in issues:
@@ -660,6 +665,9 @@ class GithubRepo:
             assignees.setdefault(issue.assignee, [])
             assignees[issue.assignee].append(issue)
 
+        # sort the assignees dict.
+        assignees = collections.OrderedDict(sorted([(k, v) for k, v in assignees.items()], key=lambda i: i[0]))
+
         # generate milestone details page
         for key, milestone in milestones.items():
             view = MILESTONE_DETAILS_TEMP.render(repo=self, key=key, milestone=milestone, issues=issues, assignees=assignees, state=state)
@@ -684,6 +692,7 @@ class GithubRepo:
             'content': encoded.decode(),
         }
 
+        path = urllib.parse.quote(path)
         try:
             obj = self.api.get_contents(path)
             params['sha'] = obj.sha

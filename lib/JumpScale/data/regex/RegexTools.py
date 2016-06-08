@@ -97,7 +97,7 @@ class RegexTools:
         """
         if pattern=="" or text=="":
             raise j.exceptions.RuntimeError("Cannot do .codetools.regex.match when pattern or text parameter is empty")
-        self.logger.debug("pattern:%s in text:%s" % (pattern,text))
+        # self.logger.debug("pattern:%s in text:%s" % (pattern,text))
         pattern=self._patternFix(pattern)
         result=re.findall(pattern,text)
         if len(result)>0:

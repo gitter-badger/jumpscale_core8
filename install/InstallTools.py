@@ -1463,12 +1463,12 @@ class InstallTools():
         returns list of paths
         """
         if "SSH_AUTH_SOCK" not in os.environ:
-            self._initSSH_ENV(True)        
+            self._initSSH_ENV(True)
         cmd = "ssh-add -L"
         rc, out  = self.execute(cmd,False,False,die=False)
         if rc!=0:
             if rc==1 and out.find("The agent has no identities")!=-1:
-                return []            
+                return []
             raise RuntimeError("error during listing of keys :%s" % err)
         if keyIncluded:
             return [(item.split(" ")[2],item.split(" ")[1]) for item in out.splitlines()]
@@ -1580,7 +1580,7 @@ class InstallTools():
         res=[item for item in self.execute("ps aux|grep ssh-agent",False,False)[1].split("\n") if item.find("grep ssh-agent")==-1]
         res=[item for item in res if item.strip()!=""]
         res=[item for item in res if item[-2:]!="-l"]
-        
+
         if len(res)>1:
             print ("more than 1 ssh-agent, will kill all")
             killfirst=True
@@ -2023,7 +2023,7 @@ class Installer():
 
     def installJS(self,base="",clean=False,insystem=True,GITHUBUSER="",GITHUBPASSWD="",CODEDIR="",\
         JSGIT="https://github.com/Jumpscale/jumpscale_core8.git",JSBRANCH="master",\
-        AYSGIT="https://github.com/Jumpscale/ays_jumpscale8",AYSBRANCH="master",SANDBOX=0,EMAIL="",FULLNAME=""):
+        AYSGIT="https://github.com/Jumpscale/ays_jumpscale8",AYSBRANCH="master",SANDBOX='0',EMAIL="",FULLNAME=""):
         """
         @param pythonversion is 2 or 3 (3 no longer tested and prob does not work)
         if 3 and base not specified then base becomes /opt/jumpscale83
@@ -2038,7 +2038,6 @@ class Installer():
         IMPORTANT: if env var's are set they get priority
 
         """
-
         #everything else is dangerous now
         copybinary=True
 
@@ -2067,40 +2066,32 @@ class Installer():
 
         print(("Install Jumpscale in %s"%os.environ["JSBASE"]))
 
-        SANDBOX=0
-
         #this means if env var's are set they get priority
-        args2=["GITHUBUSER","GITHUBPASSWD","JSGIT","JSBRANCH","AYSGIT","AYSBRANCH","CODEDIR","SANDBOX","EMAIL","FULLNAME","JSBASE","PYTHONVERSION"]
+        args2=dict(map(lambda item: (item, ''), ["GITHUBUSER","GITHUBPASSWD","JSGIT","JSBRANCH","AYSGIT","AYSBRANCH","CODEDIR","SANDBOX","EMAIL","FULLNAME","JSBASE","PYTHONVERSION"]))
         #walk over all var's & set defaults or get them from env
-        for var in args2:
+        for var in args2.copy():
             if var in os.environ:
-                cmd="%s = os.environ[\"%s\"]"%(var,var)
-                exec(cmd)
-                print(cmd)
-                print (eval("%s"%var))
+                args2[var] = os.environ[var]
+            else:
+                args2[var] = eval(var)
+                
+        os.environ.update(args2)
 
-        # if do.TYPE!=("UBUNTU64"):
-
-        os.environ["GITHUBUSER"]=GITHUBUSER
-        os.environ["GITHUBPASSWD"]=GITHUBPASSWD
-        os.environ["JSGIT"]=JSGIT
-        os.environ["JSBRANCH"]=JSBRANCH
-        os.environ["AYSGIT"]=AYSGIT
-        os.environ["SANDBOX"]=str(SANDBOX)
+        args2['SANDBOX']=int(args2['SANDBOX'])
 
         if EMAIL!="":
             self.gitConfig(FULLNAME,EMAIL)
 
         if clean:
             self.cleanSystem()
-            do.delete(self.BASE)
+            do.delete(args2['JSBASE'])
 
         self.debug=True
 
-        self.prepare(SANDBOX=SANDBOX,base= os.environ["JSBASE"])
+        self.prepare(SANDBOX=args2['SANDBOX'],base= args2['JSBASE'])
 
         print ("pull core")
-        do.pullGitRepo(JSGIT,branch=JSBRANCH, depth=1, ssh="first")
+        do.pullGitRepo(args2['JSGIT'],branch=args2['JSBRANCH'], depth=1, ssh="first")
         src="%s/github/jumpscale/jumpscale_core8/lib/JumpScale"%do.CODEDIR
         self.debug=False
 
@@ -2115,7 +2106,7 @@ class Installer():
         do.delete(destjs)
         do.createDir(destjs)
 
-        base=os.environ["JSBASE"]
+        base=args2["JSBASE"]
 
         do.createDir("%s/lib"%base)
         do.createDir("%s/bin"%base)
@@ -2158,7 +2149,7 @@ class Installer():
         #     do.symlink(src, "%s/bin/python3"%base)
         #     do.symlink(src, "%s/bin/python3.5"%base)
 
-        self.writeenv(basedir=base,insystem=insystem,CODEDIR=CODEDIR, SANDBOX=SANDBOX)
+        self.writeenv(basedir=base,insystem=insystem,CODEDIR=args2['CODEDIR'], SANDBOX=args2['SANDBOX'])
 
         if not insystem:
             sys.path=[]
@@ -2167,7 +2158,7 @@ class Installer():
         #from JumpScale import j
 
         print("Get atYourService metadata.")
-        do.pullGitRepo(AYSGIT, branch=AYSBRANCH, depth=1, ssh="first")
+        do.pullGitRepo(args2['AYSGIT'], branch=args2['AYSBRANCH'], depth=1, ssh="first")
 
         print ("install was successfull")
         # if pythonversion==2:
@@ -2485,7 +2476,6 @@ exec python3 -q "$@"
             do.execute(cmd)
 
     def prepare(self,SANDBOX=0,base=""):
-        SANDBOX=int(SANDBOX)
         print ("prepare (sandbox:%s)"%SANDBOX)
         if base=="":
             base=self.BASE

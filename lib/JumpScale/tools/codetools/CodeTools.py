@@ -4,8 +4,13 @@ import inspect
 from JumpScale import j
 
 from ClassBase import ClassBase, JSModelBase, JSRootModelBase
+from TemplateEngineWrapper import TemplateEngineWrapper
+from JumpScale.data.regex.RegexTools import RegexTools
+from TextFileEditor import TextFileEditor
+from WordReplacer import WordReplacer
 
- #ujson.dumps does not support some arguments like separators, indent ...etc
+
+#ujson.dumps does not support some arguments like separators, indent ...etc
 
 def isPrimAttribute(obj, key):
     if key[-1]=="s":
@@ -42,28 +47,24 @@ class CodeTools:
     @property
     def regex(self):
         if self._regex==None:
-            from JumpScale.data.regex.RegexTools import RegexTools
             self._regex=RegexTools()
         return self._regex
 
     @property
     def templateengine(self):
         if self._templateengine==None:
-            from TemplateEngineWrapper import TemplateEngineWrapper
             self._templateengine=TemplateEngineWrapper()
         return self._templateengine
 
     @property
     def texteditor(self):
         if self._texteditor==None:
-            from TextFileEditor import TextFileEditor
             self._texteditor=TextFileEditor()
         return self._texteditor
 
     @property
     def wordreplacer(self):
         if self._wordreplacer==None:
-            from WordReplacer import WordReplacer
             self._wordreplacer=WordReplacer()
         return self._wordreplacer
     

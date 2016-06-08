@@ -651,16 +651,6 @@ class SystemFS:
         path=self.pathClean(path)
         return path
 
-    def getParentDirName(self,path):
-        """
-        returns parent of path (only for dirs)
-        returns empty string when there is no parent
-        """
-        path=self.pathDirClean(path)
-        if len(path.split(os.sep))>2:
-            return j.sal.fs.getDirName(path,lastOnly=True,levelsUp=1) #go 1 level up to find name of parent
-        else:
-            return ""
 
     def processPathForDoubleDots(self,path):
         """
@@ -689,7 +679,6 @@ class SystemFS:
         Returns the parent of the path:
         /dir1/dir2/file_or_dir -> /dir1/dir2/
         /dir1/dir2/            -> /dir1/
-        @todo why do we have 2 implementations which are almost the same see getParentDirName()
         """
         parts = path.split(os.sep)
         if parts[-1] == '':
@@ -700,12 +689,13 @@ class SystemFS:
         return os.sep.join(parts)
 
     def getFileExtension(self,path):
-        extcand=path.split(".")
-        if len(extcand)>0:
-            ext=extcand[-1]
-        else:
-            ext=""
-        return ext
+        return os.path.splitext(path)[1]
+        # extcand=path.split(".")
+        # if len(extcand)>0:
+        #     ext=extcand[-1]
+        # else:
+        #     ext=""
+        # return ext
 
     def chown(self,path,user,group=None):
         from pwd import getpwnam
@@ -1762,22 +1752,6 @@ class SystemFS:
             return check_unix(filename)
 
         raise NotImplementedError('Filename validation on given platform not supported')
-
-    def fileConvertLineEndingCRLF(self,file):
-        '''Convert CRLF line-endings in a file to LF-only endings (\r\n -> \n)
-
-        @param file: File to convert
-        @type file: string
-        '''
-        self.logger.debug("fileConvertLineEndingCRLF "+file)
-        content=j.sal.fs.fileGetContents(file)
-        lines=content.split("\n")
-        out=""
-        for line in lines:
-            line=line.replace("\n","")
-            line=line.replace("\r","")
-            out=out+line+"\n"
-        self.writeFile(file,out)
 
     def find(self, startDir,fileregex):
         """Search for files or folders matching a given pattern

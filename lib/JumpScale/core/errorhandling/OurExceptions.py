@@ -114,3 +114,10 @@ class NotFound(BaseJSException):
         super().__init__(message, level, source, actionkey, eco, tags, msgpub)
         self.type = "notfound"
         self.codetrace = False
+
+class Timeout(BaseJSException):
+
+    def __init__(self, message="", level=1, source="", actionkey="", eco=None, tags="", msgpub=""):
+        super().__init__(message, level, source, actionkey, eco, tags, msgpub)
+        self.type = "timeout"
+        self.codetrace = False

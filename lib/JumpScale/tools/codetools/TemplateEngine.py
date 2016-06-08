@@ -1,15 +1,6 @@
 # from JumpScale.core.System import System
 from JumpScale import j
-# import urllib.request, urllib.parse, urllib.error
-
-
-try:
-    # import urllib
-    import urllib.parse as urllib
-
-except:
-    import urllib.parse as urllib
-    # from urllib import parse
+from urllib import parse as urllib_parse
 
 class TemplateEngine:
     def __init__(self):
@@ -42,7 +33,7 @@ class TemplateEngine:
         for search in list(self.replaceDict.keys()):
             replace = self.replaceDict[search]
             body = body.replace("{" + search + "}", replace)
-            body = body.replace("{:urlencode:" + search + "}", urllib.parse.quote(replace, ''))
+            body = body.replace("{:urlencode:" + search + "}", urllib_parse.quote(replace, ''))
         return body
 
     def replace(self, body, replaceCount = 3):
